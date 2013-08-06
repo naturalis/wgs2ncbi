@@ -23,7 +23,7 @@ fi
 SOURCE=maker
 
 # prefix below which to generate locus tags, should be registered as bioproject
-PREFIX=OPHA_
+PREFIX=L345_
 
 # input genome
 FASTA=king_cobra_scaffolds_spring_2011.fasta
