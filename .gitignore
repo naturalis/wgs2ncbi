@@ -1,6 +1,8 @@
+*.agp
 .DS_Store
 *.gz
 *.fasta
 *.gff
 gff3/
 tblfasta/
+asn1val/
