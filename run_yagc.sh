@@ -34,8 +34,22 @@ GFF3=cobra.functional.gff
 # extra metadata to include in the fasta header lines
 INFO=info.ini
 
+# AGP settings
+CENTER=NaturalisBC
+EVIDENCE=paired-ends
+GAP_TYPE=scaffold
+LINKAGE='yes'
+ORGANISM='Ophiophagus hanna'
+TAXID=8665
+NAME=PRJNA201683
+AGP=outfile.agp
+
+# create the AGP
+perl agpmaker.pl -i $FASTA -e $EVIDENCE -g $GAP_TYPE -o $ORGANISM -t $TAXID -n $NAME \
+	-c $CENTER > $AGP
+
 # namespace below which to scope protein and transcript IDs
-AUTHORITY='gnl|NaturalisBC|'
+AUTHORITY="gnl|${CENTER}|"
 
 # limit number of written scaffolds, for testing
 LIMIT=
