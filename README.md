@@ -29,9 +29,11 @@ Since our starting material is one giant FASTA file that contains the scaffolds 
 file with the features, we need to do the following:
 
 1. use the GenBank web form to create the submission template
-2. split the giant FASTA file into scaffolds
-3. split the GFF file into tbl files, one for each scaffold
+2. explode the GFF3 file into smaller ones, one for each scaffold
+3. split the FASTA file into scaffolds and feature tables
 4. run tbl2asn on the folder with the intermediate files
+5. verify output from tbl2asn
+6. upload .sqn files
 
 Here now follow more details about each of these steps:
 
@@ -59,7 +61,7 @@ allows us to quickly find the annotations for a given scaffold (i.e. random acce
 can filter out included things we don't want. To this end is provided the Perl script
 "explode_gff3.pl", which is run as:
 
- `perl explode_gff3.pl -gff3 $GFF3 -source $SOURCE -f CDS -f gene -f five_prime_UTR \
+ `perl explode_gff3.pl -gff3 $GFF3 -source $SOURCE -f CDS -f gene -f five_prime_UTR \  
  -f three_prime_UTR -d $GFF3DIR`
 
 Where the argument values need to be set to the following:
@@ -78,7 +80,7 @@ folder called "submission" (or whatever was provided on the command line).
 
 The script is run as:
 
- `perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \
+ `perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
  -a $AUTHORITY -l $LIMIT $VERBOSE`
 
 Where the argument values need to be set to the following:
@@ -107,7 +109,7 @@ Once the submission template, the FASTA files and the feature tables are produce
 tbl2asn program provided by NCBI needs to be run on the folder that contains these files.
 A typical invocation is something like:
 
- `tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \
+ `tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \  
  -Z $DISCREP -V $VERIFY`
 
 Where the argument values need to be set to the following:
