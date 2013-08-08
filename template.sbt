@@ -643,7 +643,7 @@ Seqdesc ::= user {
       label str "BioProject",
       num 1,
       data strs {
-        "PRJNA201683"
+        "PRJNA73575"
       }
     }
   }
