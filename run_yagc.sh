@@ -31,6 +31,9 @@ FASTA=king_cobra_scaffolds_spring_2011.fasta
 # input annotation file
 GFF3=cobra.functional.gff
 
+# number of contigs to chunk together in one file (<=10k)
+CHUNKSIZE=10000
+
 # extra metadata to include in the fasta header lines
 INFO=info.ini
 
@@ -44,9 +47,9 @@ TAXID=8665
 NAME=PRJNA73575
 AGP=outfile.agp
 
-# create the AGP
-perl agpmaker.pl -i $FASTA -e $EVIDENCE -g $GAP_TYPE -o $ORGANISM -t $TAXID -n $NAME \
-	-c $CENTER > $AGP
+# create the AGP, this step is not necessary in our case, according to NCBI
+# perl agpmaker.pl -i $FASTA -e $EVIDENCE -g $GAP_TYPE -o $ORGANISM -t $TAXID -n $NAME \
+# 	-c $CENTER > $AGP
 
 # namespace below which to scope protein and transcript IDs
 AUTHORITY="gnl|${CENTER}|"
@@ -69,7 +72,7 @@ fi
 
 # create the table and fasta files
 perl yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
- 	-i $INFO -a $AUTHORITY -l $LIMIT $VERBOSE 
+ 	-i $INFO -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE 
 
 # create the genbank and validation files
 tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
