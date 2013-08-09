@@ -112,7 +112,7 @@ sub read_fasta {
 }
 
 sub write_fasta {
-    my ( $id, $seq, $fh, $offset, %info ) = @_;
+    my ( $id, $seq, $fh, $offset, $length, %info ) = @_;
     
     # print basic header
     print $fh '>', $id;
@@ -122,22 +122,22 @@ sub write_fasta {
         print $fh ' ', join(' ', map { "[$_=$info{$_}]" } keys %info), "\n";
     }
     
-    # line break
-    for my $line ( unpack "(a80)*", substr $$seq, $offset ) {
+    # fold lines at 80 characters
+    for my $line ( unpack "(a80)*", substr $$seq, $offset, $length ) {
         print $fh $line, "\n";
     }
     INFO "wrote sequence $id";
 }
 
 sub read_features {
-    my ( $fh, $chr, $counter, $config, $seq ) = @_;
+    my ( $fh, $chr, $counter, $config, $seq, $offset ) = @_;
     INFO "reading features for $chr";
     
     # instantiate new set
     my $set = FeatureSet->new( 'seqid' => $chr );
     
     # this is re-set for every gene
-    my ( $gene, $cds, $mrna );
+    my ( $gene, $cds, $mrna, $skipgene );
     
     LINE: while(<$fh>) {
         chomp;
@@ -149,6 +149,17 @@ sub read_features {
         
         # found a new gene, start creating objects
         if ( $line[$type_idx] eq 'gene' ) {
+        
+        	# ignore genes that fall outside the range because we stripped
+        	# leading gaps
+        	if ( $line[$start_idx] - $offset <= 0 ) {
+        		$skipgene = 1;
+        		WARN "first gene on $chr outside of allowed range, skipping";
+        		next LINE;
+        	}
+        	else {
+        		$skipgene = 0;
+        	}
             finalize_gene( $gene, $cds, $mrna, $seq ) if $gene;
             
             # clear the caches
@@ -168,6 +179,7 @@ sub read_features {
             $set->add($gene);
         }
         elsif ( $line[$type_idx] eq 'CDS' ) {
+        	next LINE if $skipgene;
         
             # we only create one CDS and one mRNA object, which both span multiple ranges
             if ( not $cds and not $mrna ) {
@@ -203,7 +215,7 @@ sub read_features {
             $gene->three_prime_UTR( [ $line[$start_idx], $line[$end_idx] ] );
         }
     }
-    finalize_gene( $gene, $cds, $mrna, $seq );    
+    finalize_gene( $gene, $cds, $mrna, $seq ) if $gene;    
     return $set;
 }
 
@@ -327,17 +339,29 @@ sub read_gene_line {
             
             # feature contains 'gene'
             if ( $args->{'product'} =~ /\bgene\b/i ) {
-                WARN "[GENE] product contains 'gene': ".$args->{'product'};
+                INFO "[GENE] product contains 'gene': ".$args->{'product'};
             }
             
             # product may contain database identifier
             if ( $args->{'product'} =~ /\d{3}/ ) {
-                WARN "[DBID] product may contain database identifier: ".$args->{'product'};
+                INFO "[DBID] product may contain database identifier: ".$args->{'product'};
             }
             
             # product contains organelle
             if ( $args->{'product'} =~ /mitochondrial/i ) {
-                WARN "[ORGANELLE] product contains organelle: ".$args->{'product'};
+                INFO "[ORGANELLE] product contains organelle: ".$args->{'product'};
+            }
+            
+            # product starts with 'Probable'
+            if ( $args->{'product'} =~ /^Probable\b/i ) {
+            	$args->{'product'} =~ s/^Probable/putative/i;
+            	INFO "[PROBABLE] product starts with probable, changed to putative";
+            }
+
+            # product starts with 'Probable'
+            if ( $args->{'product'} =~ /^Uncharacterized\b/i ) {
+            	$args->{'product'} =~ s/^Uncharacterized/putative/i;
+            	INFO "[UNCHARACTERIZED] product starts with Uncharacterized, changed to putative";
             }
         }
     }
@@ -354,6 +378,20 @@ sub read_gene_line {
 sub write_features {
     my ( $features, $fh ) = @_;
     print $fh $features->to_string;
+}
+
+sub get_non_missing_index {
+	my ( $seq, $reverse ) = @_;
+	if ( $reverse ) {
+		for ( my $i = length($$seq) - 1; $i >= 0; $i-- ) {
+			return $i if substr( $$seq, $i, 1 ) ne 'N';
+		}
+	}
+	else {
+		for my $i ( 0 .. length($$seq) ) {
+			return $i if substr( $$seq, $i, 1 ) ne 'N';
+		}	
+	}
 }
 
 sub main {
@@ -374,20 +412,29 @@ sub main {
     my ( $tblFH, $scaffoldFH );
     
     # iterate over the genome
-    while( not eof $fastaFH ) {
-        last if $config->limit and ++$seq_counter == $config->limit;
+    SEQ: while( not eof $fastaFH ) {
+    	++$seq_counter;
+        last if $config->limit and $seq_counter == $config->limit;
     
         # advance to the next scaffold/chromosome 
         my ( $offset, $chr, $seq ) = ( 0 );
         ( $fastaPos, $chr, $seq ) = read_fasta( $fastaFH, $fastaPos );
+        my $length = length $$seq;
         $chr =~ s/\|/-/;
         
         # compute offset, if any
-        if ( $$seq =~ /^(N+)/ ) {
-            my $leading_gap = $1;
-            $offset = length($leading_gap);
-            WARN "leading ${offset}bp gap in $chr, will strip this and apply offset";
+        if ( $offset = get_non_missing_index($seq) ) {
+            INFO "leading ${offset}bp gap in $chr, will strip this and apply offset";
         }
+        
+        # check what we have left
+        my $last_non_missing_index = get_non_missing_index($seq,'reverse');
+		$length -= ( $length - 1 - $last_non_missing_index ) + $offset;
+		if ( $length < 100 ) {
+			WARN "remaining seq $chr is too short ($length bp), skipping";
+			$seq_counter--;
+			next SEQ;
+		}
         
         # open handle to the features table
         if ( ( $seq_counter % $config->chunksize ) == 1 ) {
@@ -409,7 +456,8 @@ sub main {
         my $gff3 = $config->gff3 . "/${chr}.gff3";
         if ( -e $gff3 ) {
             open my $gff3FH, '<', $gff3 or die $!;  
-            my $features = read_features( $gff3FH, $chr, $counter, $config, $seq );       
+            my $features = read_features( $gff3FH, $chr, $counter, $config, $seq, $offset );  
+            $features->offset($offset);     
             write_features( $features, $tblFH );        
         }
         else {
@@ -417,7 +465,7 @@ sub main {
         }
         
         # write the scaffold
-        write_fasta( $chr, $seq, $scaffoldFH, $offset, %info );        
+        write_fasta( $chr, $seq, $scaffoldFH, $offset, $length, %info );        
     }   
 }
 main();
