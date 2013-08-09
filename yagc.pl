@@ -243,32 +243,32 @@ sub finalize_gene {
         $generange->[1] = '>' . $generange->[1];
         $mrna_ranges[-1]->[1] = '>' . $mrna_ranges[-1]->[1];  
         
-		# maybe here we need to check whether there is a stop codon?
-		my $strand = $gene->strand;
-		if ( $strand eq '-' ) {
-		
-			# get integer coordinates without previously introduced <> symbols
-			my $start = $cds_ranges[-1]->[0];	
-			my $end   = $cds_ranges[-1]->[1];
-			$start =~ s/[<>]//;			
-			$end =~ s/[<>]//;
-			
-			# get the subsequence
-			( $start, $end ) = sort { $a <=> $b } ( $start, $end );
-			my $length = $end - $start;
-			my $subseq = substr $$seq, $start - 1, $length;
-			my $stop_codon  = uc substr $subseq, 0, 3;
-			
-			# reverse complement
-			$stop_codon = reverse $stop_codon;
-			$stop_codon =~ tr/ACGT/TGCA/;
-			
-			# should be a stop codon
-			if ( $stop_codon ne 'TAG' and $stop_codon ne 'TAA' and $stop_codon ne 'TGA' ) {
-				WARN "no 3' UTR and no stop codon in ".$gene->product;
-				$cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
-			}
-		}
+        # maybe here we need to check whether there is a stop codon?
+        my $strand = $gene->strand;
+        if ( $strand eq '-' ) {
+        
+            # get integer coordinates without previously introduced <> symbols
+            my $start = $cds_ranges[-1]->[0];   
+            my $end   = $cds_ranges[-1]->[1];
+            $start =~ s/[<>]//;         
+            $end =~ s/[<>]//;
+            
+            # get the subsequence
+            ( $start, $end ) = sort { $a <=> $b } ( $start, $end );
+            my $length = $end - $start;
+            my $subseq = substr $$seq, $start - 1, $length;
+            my $stop_codon  = uc substr $subseq, 0, 3;
+            
+            # reverse complement
+            $stop_codon = reverse $stop_codon;
+            $stop_codon =~ tr/ACGT/TGCA/;
+            
+            # should be a stop codon
+            if ( $stop_codon ne 'TAG' and $stop_codon ne 'TAA' and $stop_codon ne 'TGA' ) {
+                WARN "no 3' UTR and no stop codon in ".$gene->product;
+                $cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
+            }
+        }
     }
     else {
     
@@ -305,39 +305,39 @@ sub read_gene_line {
             
             # product should not end with 'domain'
             if ( $args->{'product'} =~ /domain$/i ) {
-            	INFO "[DOMAIN] product ends with 'domain': ".$args->{'product'};
-            	$args->{'product'} .= ' protein';
-            	INFO "[DOMAIN] corrected as: ".$args->{'product'};
+                INFO "[DOMAIN] product ends with 'domain': ".$args->{'product'};
+                $args->{'product'} .= ' protein';
+                INFO "[DOMAIN] corrected as: ".$args->{'product'};
             }
             
             # Implies evolutionary relationship; change to -like protein
             if ( $args->{'product'} =~ /homolog/i ) {
-            	INFO "[HOMOLOG] product contains 'homolog': ".$args->{'product'};
-            	$args->{'product'} =~ s/ homolog/-like/i;
-            	INFO "[HOMOLOG] corrected as: ".$args->{'product'};
+                INFO "[HOMOLOG] product contains 'homolog': ".$args->{'product'};
+                $args->{'product'} =~ s/ homolog/-like/i;
+                INFO "[HOMOLOG] corrected as: ".$args->{'product'};
             }
             
             # features ends with 'like', 
             # Consider adding 'protein' to the end of the product name
             if ( $args->{'product'} =~ /like$/i ) {
-            	INFO "[LIKE] product ends with like: ".$args->{'product'};
-            	$args->{'product'} .= ' protein';
-            	INFO "[LIKE] corrected as: ".$args->{'product'};
+                INFO "[LIKE] product ends with like: ".$args->{'product'};
+                $args->{'product'} .= ' protein';
+                INFO "[LIKE] corrected as: ".$args->{'product'};
             }
             
             # feature contains 'gene'
             if ( $args->{'product'} =~ /\bgene\b/i ) {
-            	WARN "[GENE] product contains 'gene': ".$args->{'product'};
+                WARN "[GENE] product contains 'gene': ".$args->{'product'};
             }
             
             # product may contain database identifier
             if ( $args->{'product'} =~ /\d{3}/ ) {
-            	WARN "[DBID] product may contain database identifier: ".$args->{'product'};
+                WARN "[DBID] product may contain database identifier: ".$args->{'product'};
             }
             
             # product contains organelle
             if ( $args->{'product'} =~ /mitochondrial/i ) {
-            	WARN "[ORGANELLE] product contains organelle: ".$args->{'product'};
+                WARN "[ORGANELLE] product contains organelle: ".$args->{'product'};
             }
         }
     }
@@ -384,26 +384,26 @@ sub main {
         
         # compute offset, if any
         if ( $$seq =~ /^(N+)/ ) {
-        	my $leading_gap = $1;
-        	$offset = length($leading_gap);
-        	WARN "leading ${offset}bp gap in $chr, will strip this and apply offset";
+            my $leading_gap = $1;
+            $offset = length($leading_gap);
+            WARN "leading ${offset}bp gap in $chr, will strip this and apply offset";
         }
         
         # open handle to the features table
         if ( ( $seq_counter % $config->chunksize ) == 1 ) {
-        	
-        	# close if already open
-        	if ( $tblFH and $scaffoldFH ) {
-        		close $tblFH;
-        		close $scaffoldFH;
-        	}
+            
+            # close if already open
+            if ( $tblFH and $scaffoldFH ) {
+                close $tblFH;
+                close $scaffoldFH;
+            }
         
-        	# generate a new name indicating the range
-        	my $upper = $seq_counter + $config->chunksize - 1;
-        	my $stem = "combined_${seq_counter}-${upper}";
-	        open $tblFH, '>', $config->dir . "/${stem}.tbl" or die $!;   
-			open $scaffoldFH, '>', $config->dir . "/${stem}.fsa" or die $!;     
-		}
+            # generate a new name indicating the range
+            my $upper = $seq_counter + $config->chunksize - 1;
+            my $stem = "combined_${seq_counter}-${upper}";
+            open $tblFH, '>', $config->dir . "/${stem}.tbl" or die $!;   
+            open $scaffoldFH, '>', $config->dir . "/${stem}.fsa" or die $!;     
+        }
         
         # get the features for that scaffold/chromosome, if we have them
         my $gff3 = $config->gff3 . "/${chr}.gff3";
@@ -561,9 +561,9 @@ sub new {
 }
 
 sub offset {
-	my $self = shift;
-	$self->{'_offset'} = shift if @_;
-	return $self->{'_offset'};
+    my $self = shift;
+    $self->{'_offset'} = shift if @_;
+    return $self->{'_offset'};
 }
 
 sub add {
@@ -608,7 +608,7 @@ sub to_string {
     my $self = shift;
     my $result = '>Features ' . $self->{'_seqid'} . "\n";
     if ( my $offset = $self->offset ) {
-    	$result .= "[offset=-${offset}]\n";
+        $result .= "[offset=-${offset}]\n";
     }
     for my $feat ( @{ $self->{'_features'} } ) {
         $result .= $feat->to_string;
