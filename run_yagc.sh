@@ -32,7 +32,7 @@ FASTA=king_cobra_scaffolds_spring_2011.fasta
 GFF3=cobra.functional.gff
 
 # number of contigs to chunk together in one file (<=10k)
-CHUNKSIZE=10000
+CHUNKSIZE=5000
 
 # extra metadata to include in the fasta header lines
 INFO=info.ini
@@ -55,7 +55,7 @@ AGP=outfile.agp
 AUTHORITY="gnl|${CENTER}|"
 
 # limit number of written scaffolds, for testing
-LIMIT=
+LIMIT=0
 
 # discrepancy report file, compare with https://www.ncbi.nlm.nih.gov/genbank/asndisc
 DISCREP=discrep.txt
@@ -72,7 +72,7 @@ fi
 
 # create the table and fasta files
 perl yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
- 	-i $INFO -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE 
+ 	-i $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT $VERBOSE 
 
 # create the genbank and validation files
 tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
