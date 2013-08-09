@@ -29,7 +29,7 @@ sub INFO ($)  { LOG shift, 'INFO'  if $Verbosity >= 2 }
 sub WARN ($)  { LOG shift, 'WARN'  if $Verbosity >= 1 }
 
 sub check_args {
-    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit );
+    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize );
     GetOptions(
         'verbose+'    => \$Verbosity,
         'dir=s'       => \$dir,
@@ -40,6 +40,7 @@ sub check_args {
         'info=s'      => \$info,
         'authority=s' => \$authority,
         'limit=i'     => \$limit,
+        'chunksize=i' => \$chunksize,
     );
     die "Need -fasta argument" if not $fasta or not -e $fasta;
     die "Need -gff3 argument" if not $gff3 or not -e $gff3;
@@ -52,6 +53,7 @@ sub check_args {
         'prefix'    => $prefix, 
         'authority' => $authority,
         'limit'     => $limit,
+        'chunksize' => $chunksize,
     );
 }
 
@@ -110,7 +112,7 @@ sub read_fasta {
 }
 
 sub write_fasta {
-    my ( $id, $seq, $fh, %info ) = @_;
+    my ( $id, $seq, $fh, $offset, %info ) = @_;
     
     # print basic header
     print $fh '>', $id;
@@ -121,7 +123,7 @@ sub write_fasta {
     }
     
     # line break
-    for my $line ( unpack "(a80)*", $$seq ) {
+    for my $line ( unpack "(a80)*", substr $$seq, $offset ) {
         print $fh $line, "\n";
     }
     INFO "wrote sequence $id";
@@ -368,21 +370,40 @@ sub main {
     my $counter = {};
     my $seq_counter;
     
+    # we will re-use these handles
+    my ( $tblFH, $scaffoldFH );
+    
     # iterate over the genome
     while( not eof $fastaFH ) {
         last if $config->limit and ++$seq_counter == $config->limit;
     
         # advance to the next scaffold/chromosome 
-        my ( $chr, $seq );
+        my ( $offset, $chr, $seq ) = ( 0 );
         ( $fastaPos, $chr, $seq ) = read_fasta( $fastaFH, $fastaPos );
         $chr =~ s/\|/-/;
-
-        # write the scaffold
-        open my $scaffoldFH, '>', $config->dir . "/${chr}.fsa" or die $!;
-        write_fasta( $chr, $seq, $scaffoldFH, %info );
+        
+        # compute offset, if any
+        if ( $$seq =~ /^(N+)/ ) {
+        	my $leading_gap = $1;
+        	$offset = length($leading_gap);
+        	WARN "leading ${offset}bp gap in $chr, will strip this and apply offset";
+        }
         
         # open handle to the features table
-        open my $tblFH, '>', $config->dir . "/${chr}.tbl" or die $!;        
+        if ( ( $seq_counter % $config->chunksize ) == 1 ) {
+        	
+        	# close if already open
+        	if ( $tblFH and $scaffoldFH ) {
+        		close $tblFH;
+        		close $scaffoldFH;
+        	}
+        
+        	# generate a new name indicating the range
+        	my $upper = $seq_counter + $config->chunksize - 1;
+        	my $stem = "combined_${seq_counter}-${upper}";
+	        open $tblFH, '>', $config->dir . "/${stem}.tbl" or die $!;   
+			open $scaffoldFH, '>', $config->dir . "/${stem}.fsa" or die $!;     
+		}
         
         # get the features for that scaffold/chromosome, if we have them
         my $gff3 = $config->gff3 . "/${chr}.gff3";
@@ -394,6 +415,9 @@ sub main {
         else {
             print $tblFH '>Features ', $chr, "\n";
         }
+        
+        # write the scaffold
+        write_fasta( $chr, $seq, $scaffoldFH, $offset, %info );        
     }   
 }
 main();
@@ -418,6 +442,8 @@ sub fasta { shift->{'fasta'} or die "Need FASTA file to operate on!" }
 sub gff3 { shift->{'gff3'} or die "Need GFF3 file to operate on!" }
 
 sub authority { shift->{'authority'} || 'gnl|NaturalisBC|' }
+
+sub chunksize { shift->{'chunksize'} || 1 }
 
 sub info { shift->{'info'} }
 
@@ -529,8 +555,15 @@ sub new {
     my $self = {
         '_seqid'    => $args{'seqid'},
         '_features' => $args{'features'} || [],
+        '_offset'   => $args{'offset'} || 0,
     };
     return bless $self, $class;
+}
+
+sub offset {
+	my $self = shift;
+	$self->{'_offset'} = shift if @_;
+	return $self->{'_offset'};
 }
 
 sub add {
@@ -574,6 +607,9 @@ sub focal_cdss {
 sub to_string {
     my $self = shift;
     my $result = '>Features ' . $self->{'_seqid'} . "\n";
+    if ( my $offset = $self->offset ) {
+    	$result .= "[offset=-${offset}]\n";
+    }
     for my $feat ( @{ $self->{'_features'} } ) {
         $result .= $feat->to_string;
     }
