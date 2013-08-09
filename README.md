@@ -75,13 +75,17 @@ Splitting the FASTA file
 ------------------------
 
 Included in this archive is a Perl script ("yagc.pl") that takes the big FASTA
-file and chops it up into separate FASTA files and tbl files, which it writes into a 
-folder called "submission" (or whatever was provided on the command line).
+file and chops it up into multiple FASTA files and tbl files, which it writes into a 
+folder called "submission" (or whatever was provided on the command line). The default
+behavior is to write each scaffold (and its features) to a separate FASTA file. This,
+however, may result in very many files. Optionally you can provide a parameter to 
+indicate that sequences and feature tables are lumped together with up to $CHUNKSIZE 
+sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI guidelines.
 
 The script is run as:
 
  `perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
- -a $AUTHORITY -l $LIMIT $VERBOSE`
+ -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE`
 
 Where the argument values need to be set to the following:
 
@@ -93,6 +97,7 @@ Where the argument values need to be set to the following:
 * AUTHORITY = prefix that identifies a naming authority, e.g. "gnl|NaturalisBC|"
 * LIMIT     = optional number of scaffolds to produce, for test runs, e.g. 20
 * VERBOSE   = increments the number of progress messages, e.g. "-v" or "-v -v"
+* CHUNKSIZE = number of scaffolds to combine in one file, e.g. 10000
 
 The script has no additional dependencies so it should be useable by people who aren't me.
 
@@ -100,7 +105,9 @@ A word of caution: this script produces in some cases tens of thousands of files
 which have a name that matches the first word in the FASTA definition line and the *.fsa 
 extension. Generally speaking you want to avoid having to look inside the folder that 
 contains these files because graphical interfaces (like the windows explorer or the mac 
-finder) have a hard time dealing with this.
+finder) have a hard time dealing with this. If you use the $CHUNKSIZE parameter the number
+of files will be a lot lower, and each will have a name matching combined_xxx-yyy.(fsa|tbl),
+where xxx and yyy are the start and end rank of the sequences in the file.
 
 Running tbl2asn
 ---------------
@@ -128,3 +135,8 @@ file that reports potential discrepancies ($DISCREP) which needs to be vetted ag
 [NCBI's instructions](https://www.ncbi.nlm.nih.gov/genbank/asndisc). Lastly, if additional
 $VERIFY arguments were provided (e.g. "b") there will be .gbf files inside $ASN1DIR which
 will show (roughly) what the results will look like on the NCBI website.
+
+Uploading to NCBI
+-----------------
+
+Tip: Note that NCBI **does** accept .tar.gz archives.
