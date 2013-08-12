@@ -130,7 +130,7 @@ sub write_fasta {
 }
 
 sub read_features {
-    my ( $fh, $chr, $counter, $config, $seq, $offset ) = @_;
+    my ( $fh, $chr, $counter, $config, $seq, $offset, $last_non_missing_index ) = @_;
     INFO "reading features for $chr";
     
     # instantiate new set
@@ -142,7 +142,19 @@ sub read_features {
     LINE: while(<$fh>) {
         chomp;
         my @line = split /\t/, $_;
-        my ( $start, $end ) = $line[$strand_idx] eq '+' ? @line[$start_idx,$end_idx] : @line[$end_idx,$start_idx];
+        
+        # raw start and end coordinates when reading left-to-right. these need to be
+        # reconciled with the strandedness, after reducing the left-to-right to the
+        # last index for non-missing characters in the raw sequence. if we don't do
+        # that we end up with features that run beyond the end of their sequence.
+        my ( $ltrs, $ltre ) = @line[$start_idx,$end_idx];
+        
+        # last_non_missing_index is the 0-based index for the last character that is
+        # not an N in the sequence. since feature tables use 1-based coordinates we
+        # add one. No $ltre may exceed this adjusted end.
+        my $adjusted_end = $last_non_missing_index + 1;
+        $ltre = $adjusted_end if $ltre > $adjusted_end;
+        my ( $start, $end ) = $line[$strand_idx] eq '+' ? ($ltrs,$ltre) : ($ltre,$ltrs);
         
         # initialize shared constructor args
         my %args = ( 'type'  => $line[$type_idx] );
@@ -277,7 +289,7 @@ sub finalize_gene {
             
             # should be a stop codon
             if ( $stop_codon ne 'TAG' and $stop_codon ne 'TAA' and $stop_codon ne 'TGA' ) {
-                WARN "no 3' UTR and no stop codon in ".$gene->product;
+                INFO "no 3' UTR and no stop codon in ".$gene->product;
                 $cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
             }
         }
@@ -456,7 +468,15 @@ sub main {
         my $gff3 = $config->gff3 . "/${chr}.gff3";
         if ( -e $gff3 ) {
             open my $gff3FH, '<', $gff3 or die $!;  
-            my $features = read_features( $gff3FH, $chr, $counter, $config, $seq, $offset );  
+            my $features = read_features( 
+            	$gff3FH,  # file handle of focal file
+            	$chr,     # scaffold/chromosome ID
+            	$counter, # counter for generating locus tags
+            	$config,  # config object
+            	$seq,     # string reference of raw sequence
+            	$offset,  # start offset
+            	$last_non_missing_index, # last true seq character
+            );  
             $features->offset($offset);     
             write_features( $features, $tblFH );        
         }
