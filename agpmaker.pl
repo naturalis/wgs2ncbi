@@ -109,6 +109,21 @@ sub write_gaps {
 	}
 }
 
+sub splice_abutting_gaps {
+	my $seqref = shift;
+	my $i = 0;
+	LEADING: while( $i < length($$seqref) ) {
+		last LEADING if substr( $$seqref, $i, 1 ) ne 'N';
+		$i++;
+	}
+	my $j = length($$seqref) - 1;
+	TRAILING: while( $j >= 0 ) {
+		last TRAILING if substr( $$seqref, $j, 1 ) ne 'N';
+		$j--;
+	}
+	return \( substr( $$seqref, $i, ( $j - $i ) + 1 ) );
+}
+
 sub main {
 	my %args = check_args();
     
@@ -127,7 +142,7 @@ sub main {
         $chr =~ s/\|/-/;
 
 		# write the AGP rows
-        write_gaps( $chr, $seq, %args );
+        write_gaps( $chr, splice_abutting_gaps($seq), %args );
     }   
 }
 main();
