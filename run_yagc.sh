@@ -23,7 +23,7 @@ fi
 SOURCE=maker
 
 # prefix below which to generate locus tags, should be registered as bioproject
-PREFIX=KS9_
+PREFIX=L345_
 
 # input genome
 FASTA=king_cobra_scaffolds_spring_2011.fasta
@@ -42,9 +42,9 @@ CENTER=NaturalisBC
 EVIDENCE=paired-ends
 GAP_TYPE=scaffold
 LINKAGE='yes'
-ORGANISM='Ophiophagus hanna'
+ORGANISM='Ophiophagus hannah'
 TAXID=8665
-NAME=PRJNA73575
+NAME=PRJNA201683
 AGP=outfile.agp
 
 # create the AGP, this step is not necessary in our case, according to NCBI
