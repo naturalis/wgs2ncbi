@@ -1,3 +1,4 @@
+contamination_dups
 *.agp
 .DS_Store
 *.gz
@@ -7,3 +8,4 @@ gff3/
 tblfasta/
 asn1val/
 discrep.txt
+transcriptome/
