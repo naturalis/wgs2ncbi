@@ -26,10 +26,10 @@ SOURCE=maker
 PREFIX=L345_
 
 # input genome
-FASTA=king_cobra_scaffolds_spring_2011.fasta
+FASTA=king_cobra_scaffolds_spring_2011-cleaned.fasta
 
 # input annotation file
-GFF3=cobra.functional.gff
+GFF3=cobra.functional-cleaned.gff
 
 # number of contigs to chunk together in one file (<=10k)
 CHUNKSIZE=5000
