@@ -324,7 +324,7 @@ sub read_gene_line {
         if ( $args->{'note'} =~ /Similar to ([^:]+):/ ) {
             $args->{'gene'} = $1;
         }
-        if ( $args->{'note'} =~ /: (.+?) \(/ ) {
+        if ( $args->{'note'} =~ /: (.+) \(.+?\);/ ) {
             $args->{'product'} = $1;
             
             # product should not end with 'domain'
@@ -375,6 +375,9 @@ sub read_gene_line {
             	$args->{'product'} =~ s/^Uncharacterized/putative/i;
             	INFO "[UNCHARACTERIZED] product starts with Uncharacterized, changed to putative";
             }
+        }
+        if ( $args->{'gene'} and $args->{'product'} eq 'hypothetical protein' ) {
+        	$args->{'product'}  = $args->{'gene'};
         }
     }
     
@@ -432,7 +435,7 @@ sub main {
         my ( $offset, $chr, $seq ) = ( 0 );
         ( $fastaPos, $chr, $seq ) = read_fasta( $fastaFH, $fastaPos );
         my $length = length $$seq;
-        $chr =~ s/\|/-/;
+        #$chr =~ s/\|/-/;
         
         # compute offset, if any
         if ( $offset = get_non_missing_index($seq) ) {
