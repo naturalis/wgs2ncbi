@@ -57,6 +57,9 @@ AUTHORITY="gnl|${CENTER}|"
 # limit number of written scaffolds, for testing
 LIMIT=0
 
+# minimum length of scaffolds to retain
+MINLENGTH=200
+
 # discrepancy report file, compare with https://www.ncbi.nlm.nih.gov/genbank/asndisc
 DISCREP=discrep.txt
 
@@ -71,8 +74,8 @@ if [ ! -d $GFF3DIR ]; then
 fi
 
 # create the table and fasta files
-perl yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
- 	-i $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT $VERBOSE 
+perl -Ilib yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
+ 	-i $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -m $MINLENGTH $VERBOSE 
 
 # create the genbank and validation files
-tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
+#tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
