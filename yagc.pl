@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use URI::Escape;
 use Getopt::Long;
+use Bio::WGS2NCBI::Config;
+use Bio::WGS2NCBI::Feature;
+use Bio::WGS2NCBI::FeatureSet;
 use File::Path 'make_path';
 
 my $Verbosity = 1;
@@ -29,7 +32,7 @@ sub INFO ($)  { LOG shift, 'INFO'  if $Verbosity >= 2 }
 sub WARN ($)  { LOG shift, 'WARN'  if $Verbosity >= 1 }
 
 sub check_args {
-    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize );
+    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize, $minlength );
     GetOptions(
         'verbose+'    => \$Verbosity,
         'dir=s'       => \$dir,
@@ -41,10 +44,11 @@ sub check_args {
         'authority=s' => \$authority,
         'limit=i'     => \$limit,
         'chunksize=i' => \$chunksize,
+        'minlength=i' => \$minlength,
     );
     die "Need -fasta argument" if not $fasta or not -e $fasta;
     die "Need -gff3 argument" if not $gff3 or not -e $gff3;
-    return Config->new(
+    return Bio::WGS2NCBI::Config->new(
         'fasta'     => $fasta, 
         'gff3'      => $gff3, 
         'info'      => $info, 
@@ -54,6 +58,7 @@ sub check_args {
         'authority' => $authority,
         'limit'     => $limit,
         'chunksize' => $chunksize,
+        'minlength' => $minlength,
     );
 }
 
@@ -134,7 +139,7 @@ sub read_features {
     INFO "reading features for $chr";
     
     # instantiate new set
-    my $set = FeatureSet->new( 'seqid' => $chr );
+    my $set = Bio::WGS2NCBI::FeatureSet->new( 'seqid' => $chr );
     
     # this is re-set for every gene
     my ( $gene, $cds, $mrna, $skipgene );
@@ -187,7 +192,7 @@ sub read_features {
             INFO "reading gene " . $args{'product'};
             
             # create the object
-            $gene = Feature->new(%args);
+            $gene = Bio::WGS2NCBI::Feature->new(%args);
             $set->add($gene);
         }
         elsif ( $line[$type_idx] eq 'CDS' ) {
@@ -201,7 +206,7 @@ sub read_features {
                 $args{'product'}       = $gene->product;
                 $args{'protein_id'}    = $config->authority . $gene->locus_tag;
                 $args{'transcript_id'} = $config->authority . $gene->locus_tag . '.mrna';
-                $cds = Feature->new(
+                $cds = Bio::WGS2NCBI::Feature->new(
                     %args,
                     'note'     => $gene->note,
                     'db_xref' => $gene->db_xref,
@@ -211,7 +216,7 @@ sub read_features {
                 
                 # create the mRNA       
                 $args{'type'} = 'mRNA';
-                $mrna = Feature->new( %args,'range' => [ [ $start, $end ] ]);
+                $mrna = Bio::WGS2NCBI::Feature->new( %args,'range' => [ [ $start, $end ] ]);
                 $set->add($mrna);
             }
             else {
@@ -324,7 +329,7 @@ sub read_gene_line {
         if ( $args->{'note'} =~ /Similar to ([^:]+):/ ) {
             $args->{'gene'} = $1;
         }
-        if ( $args->{'note'} =~ /: (.+) \(.+?\);/ ) {
+        if ( $args->{'note'} =~ /: (.+?) \([^\(\)]+\)$/ ) {
             $args->{'product'} = $1;
             
             # product should not end with 'domain'
@@ -445,7 +450,7 @@ sub main {
         # check what we have left
         my $last_non_missing_index = get_non_missing_index($seq,'reverse');
 		$length -= ( $length - 1 - $last_non_missing_index ) + $offset;
-		if ( $length < 100 ) {
+		if ( $length < $config->minlength ) {
 			WARN "remaining seq $chr is too short ($length bp), skipping";
 			$seq_counter--;
 			next SEQ;
@@ -493,196 +498,3 @@ sub main {
 }
 main();
 
-package Config;
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    my $self = \%args;
-    return bless $self, $class;
-}
-
-sub prefix { shift->{'prefix'} || 'OPHA_' }
-
-sub source { shift->{'source'} || 'maker' }
-
-sub dir { shift->{'dir'} || 'submission' }
-
-sub fasta { shift->{'fasta'} or die "Need FASTA file to operate on!" }
-
-sub gff3 { shift->{'gff3'} or die "Need GFF3 file to operate on!" }
-
-sub authority { shift->{'authority'} || 'gnl|NaturalisBC|' }
-
-sub chunksize { shift->{'chunksize'} || 1 }
-
-sub info { shift->{'info'} }
-
-sub limit { shift->{'limit'} }
-
-package Feature;
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    if ( $class eq __PACKAGE__ ) {
-        my $subclass = ucfirst( lc $args{'type'} ) . $class;
-        return $subclass->new( 'range' => [], %args);
-    }   
-    my $self = \%args;
-    return bless $self, $class;
-}
-
-sub range { 
-    my $self = shift;
-    push @{ $self->{'range'} }, shift if @_;
-    return @{ $self->{'range'} };
-}
-
-sub qualifiers { }
-
-sub to_string {
-    my $self = shift;
-    my @range = $self->range;
-    my $result = $range[0]->[0] . "\t" . $range[0]->[1] . "\t" . $self->{'type'} . "\n";
-    for my $i ( 1 .. $#range ) {
-        $result .= $range[$i]->[0] . "\t" . $range[$i]->[1] . "\n";
-    }
-    for my $q ( $self->qualifiers ) {
-        my @values;
-        if ( ref $self->{$q} and ref $self->{$q} eq 'ARRAY' ) {
-            @values = @{ $self->{$q} };
-        }
-        else {
-            @values = ( $self->{$q} );
-        }
-        for my $v ( @values ) {
-            $result .= ( "\t" x 3 ) . $q . "\t" . $v . "\n" if $v;
-        }
-    }
-    return $result;
-}
-
-package GeneFeature;
-use base 'Feature';
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    die "need locus_tag" if not $args{'locus_tag'};
-    $class->SUPER::new( 'five_prime_UTR' => [], 'three_prime_UTR' => [], %args );
-}
-
-sub note { shift->{'note'} }
-
-sub db_xref { shift->{'db_xref'} }
-
-sub strand { shift->{'strand'} }
-
-sub gene { shift->{'gene'} }
-
-sub five_prime_UTR {
-    my $self = shift;
-    push @{ $self->{'five_prime_UTR'} }, shift if @_;
-    return @{ $self->{'five_prime_UTR'} };
-}
-
-sub three_prime_UTR {
-    my $self = shift;
-    push @{ $self->{'three_prime_UTR'} }, shift if @_;
-    return @{ $self->{'three_prime_UTR'} };
-}
-
-sub product { shift->{'product'} }
-
-sub locus_tag { shift->{'locus_tag'} }
-
-sub qualifiers { qw(locus_tag gene) }
-
-package MrnaFeature;
-use base 'Feature';
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    if ( not $args{'product'} or not $args{'protein_id'} or not $args{'transcript_id'} ) {
-        die "need product, protein_id and transcript_id, product_id";
-    }
-    $class->SUPER::new(%args);  
-}
-
-sub qualifiers { qw(product protein_id transcript_id) }
-
-package CdsFeature;
-use base 'MrnaFeature';
-
-sub qualifiers { shift->SUPER::qualifiers, qw(note codon_start db_xref) }
-
-package FeatureSet;
-
-sub new {
-    my $class = shift;
-    my %args = @_;
-    my $self = {
-        '_seqid'    => $args{'seqid'},
-        '_features' => $args{'features'} || [],
-        '_offset'   => $args{'offset'} || 0,
-    };
-    return bless $self, $class;
-}
-
-sub offset {
-    my $self = shift;
-    $self->{'_offset'} = shift if @_;
-    return $self->{'_offset'};
-}
-
-sub add {
-    my ( $self, $feat ) = @_;
-    push @{ $self->{'_features'} }, $feat;
-}
-
-sub focal_gene {
-    my $self = shift;
-    for ( my $i = $#{ $self->{'_features'} }; $i >= 0; $i-- ) {
-        my $feat = $self->{'_features'}->[$i];
-        return $feat if $feat->isa('GeneFeature');
-    }
-    return undef;
-}
-
-sub focal_mrnas {
-    my $self = shift;
-    my @mrna;
-    my $i = $#{ $self->{'_features'} };
-    while( not $self->{'_features'}->[$i]->isa('GeneFeature') ) {
-        my $feat = $self->{'_features'}->[$i];
-        push @mrna, $feat if $feat->isa('MrnaFeature');     
-        $i--;
-    }
-    return @mrna;
-}
-
-sub focal_cdss {
-    my $self = shift;
-    my @cdss;
-    my $i = $#{ $self->{'_features'} };
-    while( not $self->{'_features'}->[$i]->isa('GeneFeature') ) {
-        my $feat = $self->{'_features'}->[$i];
-        push @cdss, $feat if $feat->isa('CdsFeature');      
-        $i--;
-    }
-    return @cdss;
-}
-
-sub to_string {
-    my $self = shift;
-    my $result = '>Features ' . $self->{'_seqid'} . "\n";
-    if ( my $offset = $self->offset ) {
-        $result .= "[offset=-${offset}]\n";
-    }
-    for my $feat ( @{ $self->{'_features'} } ) {
-        $result .= $feat->to_string;
-    }
-    return $result;
-}
