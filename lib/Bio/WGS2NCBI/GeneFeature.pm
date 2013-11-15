@@ -29,7 +29,7 @@ sub product { shift->{'product'} }
 
 sub locus_tag { shift->{'locus_tag'} }
 
-sub qualifiers { qw(locus_tag gene) }
+sub qualifiers { qw(locus_tag gene note) }
 
 sub note {
 	my $self = shift;
