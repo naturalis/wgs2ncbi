@@ -246,7 +246,7 @@ sub annotate_short_introns {
     if ( @cds_ranges > 1 ) {
     	for my $i ( 1 .. $#cds_ranges ) {
     		my $intron_length = abs($cds_ranges[$i]->[0] - $cds_ranges[$i-1]->[1]);
-    		if ( $intron_length < $config->minintron ) {
+    		if ( $intron_length <= $config->minintron ) {
     			$set->remove($cds,$mrna);
     			$gene->note('nonfunctional due to frameshift');
     			WARN "found $intron_length nt intron in ".$gene->product;
