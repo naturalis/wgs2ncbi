@@ -18,41 +18,15 @@ sub offset {
 }
 
 sub add {
-    my ( $self, $feat ) = @_;
-    push @{ $self->{'_features'} }, $feat;
+    my ( $self, @feat ) = @_;
+    push @{ $self->{'_features'} }, @feat;
 }
 
-sub focal_gene {
-    my $self = shift;
-    for ( my $i = $#{ $self->{'_features'} }; $i >= 0; $i-- ) {
-        my $feat = $self->{'_features'}->[$i];
-        return $feat if $feat->isa('GeneFeature');
-    }
-    return undef;
-}
+sub remove {
+	my ( $self, @feat ) = @_;
+	my %remove = map { $_->id => 1 } @feat;
+	$self->{'_features'} = [ grep { ! $remove{ $_->id } } @{ $self->{'_features'} } ];
 
-sub focal_mrnas {
-    my $self = shift;
-    my @mrna;
-    my $i = $#{ $self->{'_features'} };
-    while( not $self->{'_features'}->[$i]->isa('GeneFeature') ) {
-        my $feat = $self->{'_features'}->[$i];
-        push @mrna, $feat if $feat->isa('MrnaFeature');     
-        $i--;
-    }
-    return @mrna;
-}
-
-sub focal_cdss {
-    my $self = shift;
-    my @cdss;
-    my $i = $#{ $self->{'_features'} };
-    while( not $self->{'_features'}->[$i]->isa('GeneFeature') ) {
-        my $feat = $self->{'_features'}->[$i];
-        push @cdss, $feat if $feat->isa('CdsFeature');      
-        $i--;
-    }
-    return @cdss;
 }
 
 sub to_string {
