@@ -1,5 +1,7 @@
 package Bio::WGS2NCBI::Feature;
 
+my $IDCOUNTER = 1;
+
 sub new {
     my $class = shift;
     my %args = @_;
@@ -7,9 +9,10 @@ sub new {
     	my $type = ucfirst lc $args{'type'};
     	$class =~ s/::Feature$/::${type}Feature/;
     	eval "require $class";
-        return $class->new( 'range' => [], %args);
-    }   
+        return $class->new( 'range' => [], %args );
+    }
     my $self = \%args;
+    $self->{'id'} = $IDCOUNTER++;
     return bless $self, $class;
 }
 
@@ -18,6 +21,8 @@ sub range {
     push @{ $self->{'range'} }, shift if @_;
     return @{ $self->{'range'} };
 }
+
+sub id { shift->{'id'} }
 
 sub qualifiers { }
 
