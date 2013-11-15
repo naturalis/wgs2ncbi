@@ -4,8 +4,12 @@ contamination_dups
 *.gz
 *.fasta
 *.gff
+*.gff3
+*.txt
 gff3/
 tblfasta/
 asn1val/
 discrep.txt
 transcriptome/
+sqn/
+*-new/
