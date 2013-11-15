@@ -3,12 +3,11 @@ use strict;
 use warnings;
 use URI::Escape;
 use Getopt::Long;
+use Bio::WGS2NCBI::Logger;
 use Bio::WGS2NCBI::Config;
 use Bio::WGS2NCBI::Feature;
 use Bio::WGS2NCBI::FeatureSet;
 use File::Path 'make_path';
-
-my $Verbosity = 1;
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -20,21 +19,10 @@ my $strand_idx = 6;
 my $codon_idx  = 7;
 my $meta_idx   = 8;
 
-sub LOG ($$) {
-    my ($msg,$method) = @_;
-    my ( $package, $file1up, $line1up, $sub ) = caller( 2 );
-    my ( $pack0up, $file, $line, $sub0up )    = caller( 1 );
-    my $log = sprintf( "%s %s [%s %s] - %s\n", uc $method, $sub || '', $0, $line, $msg );
-    print STDERR $log;
-}
-sub DEBUG ($) { LOG shift, 'DEBUG' if $Verbosity >= 3 }
-sub INFO ($)  { LOG shift, 'INFO'  if $Verbosity >= 2 }
-sub WARN ($)  { LOG shift, 'WARN'  if $Verbosity >= 1 }
-
 sub check_args {
     my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize, $minlength );
     GetOptions(
-        'verbose+'    => \$Verbosity,
+        'verbose+'    => \$Bio::WGS2NCBI::Logger::Verbosity,
         'dir=s'       => \$dir,
         'source=s'    => \$source,
         'prefix=s'    => \$prefix,
@@ -177,7 +165,7 @@ sub read_features {
         	else {
         		$skipgene = 0;
         	}
-            finalize_gene( $gene, $cds, $mrna, $seq ) if $gene;
+            annotate_partials($gene,$cds,$mrna,$seq) if $gene;
             
             # clear the caches
             $gene = $cds = $mrna = undef;
@@ -202,13 +190,14 @@ sub read_features {
             if ( not $cds and not $mrna ) {
                 INFO "instantiating new CDS and mRNA";
             
-                # create the CDS
+                # create the CDS                
                 $args{'product'}       = $gene->product;
                 $args{'protein_id'}    = $config->authority . $gene->locus_tag;
                 $args{'transcript_id'} = $config->authority . $gene->locus_tag . '.mrna';
                 $cds = Bio::WGS2NCBI::Feature->new(
                     %args,
-                    'note'     => $gene->note,
+                    'phase'   => $line[$codon_idx],
+                    'note'    => $gene->note,
                     'db_xref' => $gene->db_xref,
                     'range'   => [ [ $start, $end ] ],
                 );
@@ -232,11 +221,17 @@ sub read_features {
             $gene->three_prime_UTR( [ $line[$start_idx], $line[$end_idx] ] );
         }
     }
-    finalize_gene( $gene, $cds, $mrna, $seq ) if $gene;    
+    annotate_partials($gene,$cds,$mrna,$seq) if $gene;    
     return $set;
 }
 
-sub finalize_gene {
+sub annotate_short_introns {
+
+# nonfunctional due to frameshift
+
+}
+
+sub annotate_partials {
     my ( $gene, $cds, $mrna, $seq ) = @_;
     INFO "finalizing gene ".$gene->product; 
     
@@ -247,69 +242,50 @@ sub finalize_gene {
     my ($generange) = $gene->range;
     my @mrna_ranges = $mrna->range;
     my @cds_ranges  = $cds->range;  
+    my $strand      = $gene->strand;
         
     # if no 5' UTR was seen, all we know is that the gene, CDS and mRNA may start
-    # before the coordinate we have seen
+    # before the coordinate we have seen. Prefix the start coordinate of the first
+    # segment as 5' partial ('<'). If there is a UTR, the mRNA needs to be extended
+    # to cover it.
     if ( not @five_prime_UTR ) {
-        $generange->[0] = '<' . $generange->[0];
-        $mrna_ranges[0]->[0] = '<' . $mrna_ranges[0]->[0];
-        $cds_ranges[0]->[0]  = '<' .  $cds_ranges[0]->[0];
+		$generange->[0] = '<' . $generange->[0];
+		$mrna_ranges[0]->[0] = '<' . $mrna_ranges[0]->[0];
+		$cds_ranges[0]->[0]  = '<' .  $cds_ranges[0]->[0];
     }
     else {
-    
-        # extend the mRNA
-        if ( $gene->strand eq '+' ) {
-            $mrna_ranges[0]->[0] = $five_prime_UTR[0]->[0];     
-        }
-        else {
-            $mrna_ranges[0]->[0] = $five_prime_UTR[0]->[1];
-        }
+		$mrna_ranges[0]->[0] = $five_prime_UTR[0]->[0];     
     }
     
     # if no 3' UTR was seen we don't know where the gene and mRNA ended, but we
-    # do know for the CDSs (because of the stop codons) - unless there isn't one!
+    # do know for the CDSs (because of the stop codons) - unless there isn't one
     if ( not @three_prime_UTR ) {
-        $generange->[1] = '>' . $generange->[1];
-        $mrna_ranges[-1]->[1] = '>' . $mrna_ranges[-1]->[1];  
-        
-        # maybe here we need to check whether there is a stop codon?
-        my $strand = $gene->strand;
-        if ( $strand eq '-' ) {
-        
-            # get integer coordinates without previously introduced <> symbols
-            my $start = $cds_ranges[-1]->[0];   
-            my $end   = $cds_ranges[-1]->[1];
-            $start =~ s/[<>]//;         
-            $end =~ s/[<>]//;
-            
-            # get the subsequence
-            ( $start, $end ) = sort { $a <=> $b } ( $start, $end );
-            my $length = $end - $start;
-            my $subseq = substr $$seq, $start - 1, $length;
-            my $stop_codon  = uc substr $subseq, 0, 3;
-            
-            # reverse complement
-            $stop_codon = reverse $stop_codon;
-            $stop_codon =~ tr/ACGT/TGCA/;
-            
-            # should be a stop codon
-            if ( $stop_codon ne 'TAG' and $stop_codon ne 'TAA' and $stop_codon ne 'TGA' ) {
-                INFO "no 3' UTR and no stop codon in ".$gene->product;
-                $cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
-            }
-        }
+    	$generange->[1] = '>' . $generange->[1];
+		$mrna_ranges[-1]->[1] = '>' . $mrna_ranges[-1]->[1];
+    	
+    	# parse the stop codon from the strand
+    	my $stop_codon;
+    	my $cds_end = $cds_ranges[-1]->[1];
+    	my $phase = $cds->phase;
+    	if ( $strand eq '+' ) {
+    		$stop_codon = substr $$seq, $cds_end - 3, 3;
+    	}
+    	else {
+    		$stop_codon = substr $$seq, $cds_end - 1, 3;
+    		$stop_codon = reverse uc $stop_codon;
+    		$stop_codon =~ tr/ACGT/TGCA/;
+    	}        
+        if ( $stop_codon !~ /^(?:TAG|TAA|TGA)$/ ) {
+			WARN "no stop codon ($stop_codon) on $strand ($phase) in ".$gene->product;
+			$cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
+		}
+		else {
+			INFO "stop codon $stop_codon on $strand ($phase) in ".$gene->product;
+		}
     }
     else {
-    
-        # extend the mRNA
-        if ( $gene->strand eq '+' ) {
-            $mrna_ranges[-1]->[1] = $three_prime_UTR[-1]->[1];
-        }
-        else {
-            $mrna_ranges[-1]->[1] = $three_prime_UTR[-1]->[0];
-        }
+		$mrna_ranges[-1]->[1] = $three_prime_UTR[-1]->[1];
     }
-
 }
 
 sub read_gene_line {
@@ -440,7 +416,6 @@ sub main {
         my ( $offset, $chr, $seq ) = ( 0 );
         ( $fastaPos, $chr, $seq ) = read_fasta( $fastaFH, $fastaPos );
         my $length = length $$seq;
-        #$chr =~ s/\|/-/;
         
         # compute offset, if any
         if ( $offset = get_non_missing_index($seq) ) {
