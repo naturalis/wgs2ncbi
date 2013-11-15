@@ -27,4 +27,6 @@ sub limit { shift->{'limit'} }
 
 sub minlength { shift->{'minlength'} || 200 }
 
+sub minintron { shift->{'minintron'} || 10 }
+
 1;
