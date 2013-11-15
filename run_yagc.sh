@@ -7,13 +7,13 @@ VERBOSE=
 GFF3DIR=gff3
 
 # directory for tbl and fasta files
-TBLDIR=tblfasta
+TBLDIR=tblfasta-new
 if [ ! -d $TBLDIR ]; then
 	mkdir -p $TBLDIR
 fi
 
 # validation directory, contains val reports, ASN.1 output (and genbank files)
-ASN1DIR=asn1val
+ASN1DIR=asn1val-new
 if [ ! -d $ASN1DIR ]; then
 	mkdir -p $ASN1DIR
 fi
@@ -61,7 +61,7 @@ LIMIT=0
 MINLENGTH=200
 
 # discrepancy report file, compare with https://www.ncbi.nlm.nih.gov/genbank/asndisc
-DISCREP=discrep.txt
+DISCREP=discrep-new.txt
 
 # the submission template as produced by http://www.ncbi.nlm.nih.gov/WebSub/template.cgi
 TEMPLATE=template.sbt
@@ -78,4 +78,4 @@ perl -Ilib yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
  	-i $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -m $MINLENGTH $VERBOSE 
 
 # create the genbank and validation files
-#tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
+tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
