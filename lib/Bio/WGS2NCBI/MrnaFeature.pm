@@ -1,6 +1,6 @@
 package Bio::WGS2NCBI::MrnaFeature;
-use Bio::WGS2NCBI::Feature;
-use base 'Bio::WGS2NCBI::Feature';
+use Bio::WGS2NCBI::StrandedFeature;
+use base 'Bio::WGS2NCBI::StrandedFeature';
 
 sub new {
     my $class = shift;
