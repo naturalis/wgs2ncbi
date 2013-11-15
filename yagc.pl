@@ -20,7 +20,8 @@ my $codon_idx  = 7;
 my $meta_idx   = 8;
 
 sub check_args {
-    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize, $minlength );
+    my ( $fasta, $gff3, $info, $dir, $source, $prefix, $authority, $limit, $chunksize, 
+    $minlength, $minintron );
     GetOptions(
         'verbose+'    => \$Bio::WGS2NCBI::Logger::Verbosity,
         'dir=s'       => \$dir,
@@ -33,6 +34,7 @@ sub check_args {
         'limit=i'     => \$limit,
         'chunksize=i' => \$chunksize,
         'minlength=i' => \$minlength,
+        'minintron=i' => \$minintron,
     );
     die "Need -fasta argument" if not $fasta or not -e $fasta;
     die "Need -gff3 argument" if not $gff3 or not -e $gff3;
@@ -47,6 +49,7 @@ sub check_args {
         'limit'     => $limit,
         'chunksize' => $chunksize,
         'minlength' => $minlength,
+        'minintron' => $minintron,
     );
 }
 
@@ -165,7 +168,12 @@ sub read_features {
         	else {
         		$skipgene = 0;
         	}
-            annotate_partials($gene,$cds,$mrna,$seq) if $gene;
+
+			# finish the previous gene, if we have any
+        	if ( $gene ) {
+            	annotate_short_introns($gene,$cds,$mrna,$set,$config);
+            	annotate_partials($gene,$cds,$mrna,$seq);
+            }
             
             # clear the caches
             $gene = $cds = $mrna = undef;
@@ -221,14 +229,36 @@ sub read_features {
             $gene->three_prime_UTR( [ $line[$start_idx], $line[$end_idx] ] );
         }
     }
-    annotate_partials($gene,$cds,$mrna,$seq) if $gene;    
+    
+	# finish the final gene, if we have any
+	if ( $gene ) {
+		annotate_short_introns($gene,$cds,$mrna,$set,$config);
+		annotate_partials($gene,$cds,$mrna,$seq);
+	}
+            
     return $set;
 }
 
 sub annotate_short_introns {
-
-# nonfunctional due to frameshift
-
+    my ( $gene, $cds, $mrna, $set, $config ) = @_;
+    INFO "checking for short introns in ".$gene->product;     
+    my @cds_ranges = $cds->range;
+    if ( @cds_ranges > 1 ) {
+    	for my $i ( 1 .. $#cds_ranges ) {
+    		my $intron_length = abs($cds_ranges[$i]->[0] - $cds_ranges[$i-1]->[1]);
+    		if ( $intron_length < $config->minintron ) {
+    			$set->remove($cds,$mrna);
+    			$gene->note('nonfunctional due to frameshift');
+    			WARN "found $intron_length nt intron in ".$gene->product;
+    			return 0;
+    		}
+    	}
+    }
+    else {
+    	INFO "gene had only one exon, no intron lengths to validate in ".$gene->product;
+    }
+    $gene->note('');
+	return 1;
 }
 
 sub annotate_partials {
@@ -266,7 +296,6 @@ sub annotate_partials {
     	# parse the stop codon from the strand
     	my $stop_codon;
     	my $cds_end = $cds_ranges[-1]->[1];
-    	my $phase = $cds->phase;
     	if ( $strand eq '+' ) {
     		$stop_codon = substr $$seq, $cds_end - 3, 3;
     	}
@@ -276,11 +305,11 @@ sub annotate_partials {
     		$stop_codon =~ tr/ACGT/TGCA/;
     	}        
         if ( $stop_codon !~ /^(?:TAG|TAA|TGA)$/ ) {
-			WARN "no stop codon ($stop_codon) on $strand ($phase) in ".$gene->product;
+			WARN "no stop codon ($stop_codon) on $strand in ".$gene->product;
 			$cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
 		}
 		else {
-			INFO "stop codon $stop_codon on $strand ($phase) in ".$gene->product;
+			INFO "stop codon $stop_codon on $strand in ".$gene->product;
 		}
     }
     else {
