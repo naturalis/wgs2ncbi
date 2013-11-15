@@ -60,6 +60,9 @@ LIMIT=0
 # minimum length of scaffolds to retain
 MINLENGTH=200
 
+# minimum length of introns to believe
+MININTRON=10
+
 # discrepancy report file, compare with https://www.ncbi.nlm.nih.gov/genbank/asndisc
 DISCREP=discrep-new.txt
 
@@ -75,7 +78,8 @@ fi
 
 # create the table and fasta files
 perl -Ilib yagc.pl -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA -g $GFF3DIR \
- 	-i $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -m $MINLENGTH $VERBOSE 
+ 	-info $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -minlength $MINLENGTH \
+ 	-minintron $MININTRON $VERBOSE 
 
 # create the genbank and validation files
 tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
