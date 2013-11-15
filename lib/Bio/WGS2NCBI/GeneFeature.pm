@@ -1,6 +1,6 @@
 package Bio::WGS2NCBI::GeneFeature;
-use Bio::WGS2NCBI::Feature;
-use base 'Bio::WGS2NCBI::Feature';
+use Bio::WGS2NCBI::StrandedFeature;
+use base 'Bio::WGS2NCBI::StrandedFeature';
 
 sub new {
     my $class = shift;
@@ -9,11 +9,7 @@ sub new {
     $class->SUPER::new( 'five_prime_UTR' => [], 'three_prime_UTR' => [], %args );
 }
 
-sub note { shift->{'note'} }
-
 sub db_xref { shift->{'db_xref'} }
-
-sub strand { shift->{'strand'} }
 
 sub gene { shift->{'gene'} }
 
@@ -34,5 +30,13 @@ sub product { shift->{'product'} }
 sub locus_tag { shift->{'locus_tag'} }
 
 sub qualifiers { qw(locus_tag gene) }
+
+sub note {
+	my $self = shift;
+	if ( @_ ) {
+		$self->{'note'} = shift;
+	}
+	return $self->{'note'};
+}
 
 1;
