@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Data::Dumper;
-use Bio::Phylo::Util::Logger ':levels';
+use Bio::WGS2NCBI::Logger;
 use constant EXCLUDE => 1;
 use constant TRIM    => 2;
 use constant DEDUP   => 3;
@@ -91,16 +91,15 @@ was collected).
 
 =cut
 
-my $verbosity = WARN;
-my $report    = 'contamination_dups';
-my $fasta     = 'king_cobra_scaffolds_spring_2011.fasta';
-my $gff3      = 'cobra.functional.gff';
-my $outfasta  = 'king_cobra_scaffolds_spring_2011-cleaned.fasta';
-my $outgff3   = 'cobra.functional-cleaned.gff';
+my $report    = 'share/contamination_dups';
+my $fasta     = 'share/king_cobra_scaffolds_spring_2011.fasta';
+my $gff3      = 'share/cobra.functional.gff';
+my $outfasta  = 'share/king_cobra_scaffolds_spring_2011-cleaned.fasta';
+my $outgff3   = 'share/cobra.functional-cleaned.gff';
 my $minlength = 200;
 
 GetOptions(
-	'verbose+'    => \$verbosity,
+	'verbose+'    => \$Bio::WGS2NCBI::Logger::Verbosity,
 	'report=s'    => \$report,
 	'fasta=s'     => \$fasta,
 	'gff3=s'      => \$gff3,
@@ -108,8 +107,6 @@ GetOptions(
 	'outgff3=s'   => \$outgff3,
 	'minlength=i' => \$minlength,
 );
-
-Bio::Phylo::Util::Logger->VERBOSE( '-level' => $verbosity, '-class' => 'main' );
 
 # read the NCBI report with sequence IDs to exclude or trim
 my ( %exclude, %trim );
