@@ -1,10 +1,37 @@
 package Bio::WGS2NCBI::Config;
+use strict;
+use warnings;
+use Getopt::Long;
+use Bio::WGS2NCBI::Logger;
+
+my $SINGLETON;
 
 sub new {
     my $class = shift;
-    my %args = @_;
-    my $self = \%args;
-    return bless $self, $class;
+	if ( $SINGLETON ) {
+		return $SINGLETON;
+	}
+	else {
+		my %config;
+		GetOptions(
+			'verbose+'    => \$Bio::WGS2NCBI::Logger::Verbosity,
+			'dir=s'       => \$config{'dir'},
+			'source=s'    => \$config{'source'},
+			'prefix=s'    => \$config{'prefix'},
+			'fasta=s'     => \$config{'fasta'},
+			'gff3=s'      => \$config{'gff3'},
+			'info=s'      => \$config{'info'},
+			'authority=s' => \$config{'authority'},
+			'limit=i'     => \$config{'limit'},
+			'chunksize=i' => \$config{'chunksize'},
+			'minlength=i' => \$config{'minlength'},
+			'minintron=i' => \$config{'minintron'},
+		);
+		die "Need -fasta argument" if not $config{'fasta'} or not -e $config{'fasta'};
+		die "Need -gff3 argument"  if not $config{'gff3'}  or not -e $config{'gff3'};
+		$SINGLETON = \%config;
+    	return bless $SINGLETON, $class;
+    }
 }
 
 sub prefix { shift->{'prefix'} || 'OPHA_' }
