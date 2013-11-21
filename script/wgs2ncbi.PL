@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Pod::Usage;
 use Bio::WGS2NCBI;
 
 my $action = shift;
