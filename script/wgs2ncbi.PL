@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Pod::Usage;
+use Bio::WGS2NCBI;
+
+my $action = shift;
+if ( $action and Bio::WGS2NCBI->can($action) ) {
+    Bio::WGS2NCBI->$action;
+    exit 0;
+}
+Bio::WGS2NCBI->help;
