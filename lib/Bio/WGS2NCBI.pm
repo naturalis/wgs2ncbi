@@ -8,6 +8,9 @@ use Bio::WGS2NCBI::Feature;
 use Bio::WGS2NCBI::FeatureSet;
 use File::Path 'make_path';
 
+# version number for the whole release is defined here
+our $VERSION = 1.0;
+
 # export the run function
 require Exporter;
 use base 'Exporter';
