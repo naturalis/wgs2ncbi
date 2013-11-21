@@ -2,7 +2,7 @@ use Config;
 my $perl   = $Config{'perlpath'};
 my $script = shift @ARGV;
 open my $fh, '>', $script;
-print $fh "#!/$perl\n";
+print $fh "#!$perl\n";
 print $fh <<'LITERAL';
 use Bio::WGS2NCBI;
 my $action = shift;
