@@ -2,6 +2,7 @@ package Bio::WGS2NCBI::Config;
 use strict;
 use warnings;
 use Getopt::Long;
+use Data::Dumper;
 use Bio::WGS2NCBI::Logger;
 
 my $SINGLETON;
@@ -12,7 +13,7 @@ sub new {
 		return $SINGLETON;
 	}
 	else {
-		my %config;
+		my %config = $class->read_ini($ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
 		GetOptions(
 			'verbose+'    => \$Bio::WGS2NCBI::Logger::Verbosity,
 			'dir=s'       => \$config{'dir'},
@@ -32,6 +33,26 @@ sub new {
 		$SINGLETON = \%config;
     	return bless $SINGLETON, $class;
     }
+}
+
+sub read_ini {
+	my ( $self, $file ) = @_;
+	my %result;
+	if ( $file and -e $file ) {
+		open my $fh, '<', $file or die $!;
+		while(<$fh>) {
+			chomp;
+			s/#.*$//; # strip comments
+			if ( /^(.+?)=(.+)$/ ) {
+				my ( $key, $value ) = ( $1, $2 );
+				$result{$key} = $value;
+			}
+			if ( /\[.*\]/ ) {
+				WARN "ini-style headings are ignored: $_";
+			}
+		}
+	}
+	return %result;
 }
 
 sub prefix { shift->{'prefix'} || 'OPHA_' }
