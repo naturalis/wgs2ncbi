@@ -42,7 +42,7 @@ sub read_ini {
 		open my $fh, '<', $file or die $!;
 		while(<$fh>) {
 			chomp;
-			s/#.*$//; # strip comments
+			s/;.*$//; # strip comments
 			if ( /^(.+?)=(.+)$/ ) {
 				my ( $key, $value ) = ( $1, $2 );
 				$result{$key} = $value;
