@@ -27,9 +27,9 @@ sub new {
 			'chunksize=i' => \$config{'chunksize'},
 			'minlength=i' => \$config{'minlength'},
 			'minintron=i' => \$config{'minintron'},
+			'products=s'  => \$config{'products'},
+			'masks=s'     => \$config{'masks'},
 		);
-		die "Need -fasta argument" if not $config{'fasta'} or not -e $config{'fasta'};
-		die "Need -gff3 argument"  if not $config{'gff3'}  or not -e $config{'gff3'};
 		$SINGLETON = \%config;
     	return bless $SINGLETON, $class;
     }
@@ -45,7 +45,15 @@ sub read_ini {
 			s/;.*$//; # strip comments
 			if ( /^(.+?)=(.+)$/ ) {
 				my ( $key, $value ) = ( $1, $2 );
-				$result{$key} = $value;
+				if ( $result{$key} and not ref $result{$key} ) {
+					$result{$key} = [ $result{$key}, $value ];
+				}
+				elsif ( $result{$key} and ref $result{$key} eq 'ARRAY' ) {
+					push @{ $result{$key} }, $value;
+				}
+				else {
+					$result{$key} = $value;
+				}
 			}
 			if ( /\[.*\]/ ) {
 				WARN "ini-style headings are ignored: $_";
@@ -54,6 +62,10 @@ sub read_ini {
 	}
 	return %result;
 }
+
+sub masks { shift->{'masks'} }
+
+sub products { shift->{'products'} }
 
 sub prefix { shift->{'prefix'} || 'OPHA_' }
 
