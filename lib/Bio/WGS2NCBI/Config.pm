@@ -56,7 +56,7 @@ sub read_ini {
 				}
 			}
 			if ( /\[.*\]/ ) {
-				WARN "ini-style headings are ignored: $_";
+				INFO "ini-style headings are ignored: $_";
 			}
 		}
 	}
