@@ -1,4 +1,3 @@
-contamination_dups
 *.agp
 .DS_Store
 *.gz
@@ -6,10 +5,6 @@ contamination_dups
 *.gff
 *.gff3
 *.txt
-gff3/
-tblfasta/
-asn1val/
 discrep.txt
-transcriptome/
-sqn/
-*-new/
+share/*/
+share/contamination_dups
