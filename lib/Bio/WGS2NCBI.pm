@@ -2,6 +2,7 @@ package Bio::WGS2NCBI;
 use strict;
 use warnings;
 use URI::Escape;
+use Bio::WGS2NCBI::Seq;
 use Bio::WGS2NCBI::Logger;
 use Bio::WGS2NCBI::Config;
 use Bio::WGS2NCBI::Feature;
@@ -14,7 +15,7 @@ our $VERSION = 1.0;
 # export the run function
 require Exporter;
 use base 'Exporter';
-our @EXPORT = qw(run);
+our @EXPORT = qw(run fix_products fix_deflines mask_sequences);
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -34,14 +35,15 @@ sub read_fasta {
     DEBUG "reading starts at $pos";
     
     # these will store what's on the def line and the subsequent seq data
-    my ( $chr, $seq );
+    my ( $chr, $seq, $desc );
     LINE: while(<$fh>) {
         chomp;
         
         # we have a definition line, break if we've already processed a defline
-        if ( />(.+)$/ ) {
+        if ( /^>(.+)$/ ) {
             last LINE if $chr;
-            $chr = $1;
+            my $defline = $1;
+            ( $chr, $desc ) = split /\s+/, $defline, 2;
             DEBUG "going to concatenate sequence data for $chr";
         }
         else {
@@ -53,33 +55,37 @@ sub read_fasta {
         }       
     }   
     DEBUG "reading ended at $pos";
-    return $pos, $chr, \$seq;
+    return $pos, Bio::WGS2NCBI::Seq->new( 
+    	'-id'   => $chr, 
+    	'-desc' => $desc,
+    	'-seq'  => \$seq,     	
+    );
 }
 
 sub write_fasta {
-    my ( $id, $seq, $fh, $offset, $length, %info ) = @_;
+    my ( $seq, $fh ) = @_;
     
     # print basic header
-    print $fh '>', $id;
+    print $fh '>', $seq->id;
     
     # add extra info
-    if ( %info ) {
-        print $fh ' ', join(' ', map { "[$_=$info{$_}]" } keys %info), "\n";
+    if ( $seq->desc ) {
+        print $fh ' ', $seq->desc, "\n";
     }
     
     # fold lines at 80 characters
-    for my $line ( unpack "(a80)*", substr $$seq, $offset, $length ) {
+    for my $line ( unpack "(a80)*", $seq->seq ) {
         print $fh $line, "\n";
     }
-    INFO "wrote sequence $id";
+    DEBUG "wrote sequence ".$seq->id;
 }
 
 sub read_features {
-    my ( $fh, $chr, $counter, $config, $seq, $offset, $last_non_missing_index ) = @_;
-    INFO "reading features for $chr";
+    my ( $fh, $counter, $config, $seq, $offset, $last_non_missing_index ) = @_;
+    INFO "reading features for ".$seq->id;
     
     # instantiate new set
-    my $set = Bio::WGS2NCBI::FeatureSet->new( 'seqid' => $chr );
+    my $set = Bio::WGS2NCBI::FeatureSet->new( 'seqid' => $seq->id );
     
     # this is re-set for every gene
     my ( $gene, $cds, $mrna, $skipgene );
@@ -111,7 +117,7 @@ sub read_features {
         	# leading gaps
         	if ( $line[$start_idx] - $offset <= 0 ) {
         		$skipgene = 1;
-        		WARN "first gene on $chr outside of allowed range, skipping";
+        		WARN "first gene on ".$seq->id()." outside of allowed range, skipping";
         		next LINE;
         	}
         	else {
@@ -166,7 +172,7 @@ sub read_features {
                 $set->add($mrna);
             }
             else {
-                INFO "growing range for CDS and mRNA ($start..$end)";
+                DEBUG "growing range for CDS and mRNA ($start..$end)";
                 $cds->range(  [ $start, $end ] );
                 $mrna->range( [ $start, $end ] );
             }
@@ -231,9 +237,11 @@ sub annotate_partials {
 		$generange->[0] = '<' . $generange->[0];
 		$mrna_ranges[0]->[0] = '<' . $mrna_ranges[0]->[0];
 		$cds_ranges[0]->[0]  = '<' .  $cds_ranges[0]->[0];
+		INFO "no 5' UTR";
     }
     else {
 		$mrna_ranges[0]->[0] = $five_prime_UTR[0]->[0];     
+		INFO "found 5' UTR";
     }
     
     # if no 3' UTR was seen we don't know where the gene and mRNA ended, but we
@@ -244,18 +252,15 @@ sub annotate_partials {
     	
     	# parse the stop codon from the strand
     	my $stop_codon;
-    	my $cds_end   = $cds_ranges[-1]->[1];
-    	
+    	my $cds_end   = $cds_ranges[-1]->[1];    	
     	if ( $strand eq '+' ) {
-    		$stop_codon = substr $$seq, $cds_end - 3, 3;
+    		$stop_codon = $seq->trunc( $cds_end - 2, $cds_end )->seq;
     	}
     	else {
-    		$stop_codon = substr $$seq, $cds_end - 1, 3;
-    		$stop_codon = reverse uc $stop_codon;
-    		$stop_codon =~ tr/ACGT/TGCA/;
+    		$stop_codon = $seq->trunc( $cds_end, $cds_end + 2 )->revcom->seq;
     	}        
-        if ( $stop_codon !~ /^(?:TAG|TAA|TGA)$/ ) {
-			WARN "no stop codon ($stop_codon) on $strand in ".$gene->product;
+        if ( $stop_codon !~ /^(?:TAG|TAA|TGA)$/i ) {
+			INFO "no stop codon ($stop_codon) on $strand in ".$gene->product;
 			$cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
 		}
 		else {
@@ -264,6 +269,7 @@ sub annotate_partials {
     }
     else {
 		$mrna_ranges[-1]->[1] = $three_prime_UTR[-1]->[1];
+		INFO "found 3' UTR";
     }
 }
 
@@ -347,7 +353,18 @@ sub read_gene_line {
         my $refs = $1;
         $refs =~ s/Pfam/PFAM/g;
         $args->{'db_xref'} = [ split /,/, $refs ];
-    }   
+    }
+    
+    # check if we need to replace from INI
+	my $config = Bio::WGS2NCBI::Config->new;
+	if ( my $file = $config->products ) {
+		my %map = $config->read_ini( $file );
+		if ( my $fixed = $map{ $args->{'product'} } ) {
+			WARN "replacing '".$args->{'product'}."' with '$fixed' from '$file'";
+			$args->{'product'} = $fixed; 
+		}
+	}
+	delete $args->{'gene'} if $args->{'gene'} and $args->{'gene'} eq 'hypothetical protein';
 }
 
 sub write_features {
@@ -357,16 +374,33 @@ sub write_features {
 
 sub get_non_missing_index {
 	my ( $seq, $reverse ) = @_;
-	if ( $reverse ) {
-		for ( my $i = length($$seq) - 1; $i >= 0; $i-- ) {
-			return $i if substr( $$seq, $i, 1 ) ne 'N';
-		}
+	
+	# make a 1-based index array
+	my @i = 1 .. $seq->length;
+	
+	# turn into decrementing if we read from the end
+	@i = reverse @i if $reverse;
+	
+	# iterate over indices, return 0-based index of first non-missing residue
+	for my $i ( @i ) {
+		return $i - 1 if uc( $seq->subseq($i,$i) ) ne 'N';
 	}
-	else {
-		for my $i ( 0 .. length($$seq) ) {
-			return $i if substr( $$seq, $i, 1 ) ne 'N';
-		}	
+}
+
+sub mask_seq {
+	my ( $seq, @masks ) = @_;
+	my $raw = $seq->seq;
+	my $id  = $seq->id;
+	for my $m ( @masks ) {
+		if ( $m =~ /(\d+)\.\.(\d+)/ ) {
+			my ( $start, $stop ) = ( $1, $2 );
+			my $index = $start - 1;
+			my $length = $stop - $index;
+			substr $raw, $index, $length, ( 'N' x $length );
+			WARN "masked ${id}:${start}-${stop}";
+		}		
 	}
+	$seq->seq( \$raw );
 }
 
 sub run {
@@ -374,6 +408,20 @@ sub run {
     
     # read the info file, if any
     my %info = $config->read_ini( $config->info );
+    my $desc = join ' ', map { sprintf('[%s=%s]',$_,$info{$_}) } keys %info;
+    
+    # read the masks, if any
+    my %masks;
+	if ( my $file = $config->masks ) {
+	
+		# read the masks file, make values uniformly array refs
+		my %masks = $config->read_ini( $file );
+		for my $key ( keys %masks ) {
+			$masks{$key} = [ $masks{$key} ] if not ref $masks{$key};
+		}
+		INFO "read masks for ".scalar(keys(%masks))." sequences";	
+	
+	}    
     
     # open the fasta file handle
     open my $fastaFH, '<', $config->fasta or die $!;
@@ -392,16 +440,21 @@ sub run {
         last if $config->limit and $seq_counter == $config->limit;
     
         # advance to the next scaffold/chromosome 
-        my ( $offset, $chr, $seq ) = ( 0 );
-        ( $fastaPos, $chr, $seq ) = read_fasta( $fastaFH, $fastaPos );
-        my $length = length $$seq;
+        my ( $offset, $seq ) = ( 0 );
+        ( $fastaPos, $seq ) = read_fasta( $fastaFH, $fastaPos );
+        $seq->desc($desc);
+        my $length = $seq->length;
+        my $chr    = $seq->id;
         
-        # compute offset, if any
+        # mask any additional regions
+        mask_seq($seq, @{$masks{$chr}}) if $masks{$chr};
+        
+        # compute offset at beginning, if any. e.g. if NNCGTNN, $offset is 2
         if ( $offset = get_non_missing_index($seq) ) {
             INFO "leading ${offset}bp gap in $chr, will strip this and apply offset";
         }
         
-        # check what we have left
+        # check what we have left, here if NNCGTNN, $lnmi == 4
         my $last_non_missing_index = get_non_missing_index($seq,'reverse');
 		$length -= ( $length - 1 - $last_non_missing_index ) + $offset;
 		if ( $length < $config->minlength ) {
@@ -432,7 +485,6 @@ sub run {
             open my $gff3FH, '<', $gff3 or die $!;  
             my $features = read_features( 
             	$gff3FH,  # file handle of focal file
-            	$chr,     # scaffold/chromosome ID
             	$counter, # counter for generating locus tags
             	$config,  # config object
             	$seq,     # string reference of raw sequence
@@ -447,7 +499,7 @@ sub run {
         }
         
         # write the scaffold
-        write_fasta( $chr, $seq, $scaffoldFH, $offset, $length, %info );        
+        write_fasta( $seq->trunc( $offset + 1, $offset + $length ), $scaffoldFH );        
     }   
 }
 
