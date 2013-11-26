@@ -7,13 +7,13 @@ VERBOSE=
 GFF3DIR=share/gff3
 
 # directory for tbl and fasta files
-TBLDIR=share/tblfasta-new
+TBLDIR=share/tblfasta-new1
 if [ ! -d $TBLDIR ]; then
 	mkdir -p $TBLDIR
 fi
 
 # validation directory, contains val reports, ASN.1 output (and genbank files)
-ASN1DIR=share/asn1val-new
+ASN1DIR=share/asn1val-new1
 if [ ! -d $ASN1DIR ]; then
 	mkdir -p $ASN1DIR
 fi
@@ -69,6 +69,12 @@ DISCREP=share/discrep-new.txt
 # the submission template as produced by http://www.ncbi.nlm.nih.gov/WebSub/template.cgi
 TEMPLATE=share/template.sbt
 
+# file with corrected product names
+PRODUCTS=share/products.ini
+
+# file with adaptor masks
+MASKS=share/adaptors.ini
+
 # explode the annotations into files 
 if [ ! -d $GFF3DIR ]; then	
 	mkdir -p $GFF3DIR
@@ -77,9 +83,9 @@ if [ ! -d $GFF3DIR ]; then
 fi
 
 # create the table and fasta files
-perl -Ilib -MBio::WGS2NCBI -e run - -d $TBLDIR -s $SOURCE -p $PREFIX -f $FASTA \
-	-g $GFF3DIR -info $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -minlength $MINLENGTH \
- 	-minintron $MININTRON $VERBOSE 
+#perl -Ilib -MBio::WGS2NCBI -e run - -d $TBLDIR -s $SOURCE -prefix $PREFIX -f $FASTA \
+#	-g $GFF3DIR -info $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -minlength $MINLENGTH \
+#	-minintron $MININTRON -masks $MASKS -products $PRODUCTS $VERBOSE 
 
 # create the genbank and validation files
 tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
