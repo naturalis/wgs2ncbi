@@ -328,7 +328,11 @@ Submit-block ::= {
 Seqdesc ::= pub {
   pub {
     gen {
-      cit "unpublished",
+    article {
+      title {
+        name "King cobra genome reveals dynamic gene evolution and adaptation
+ in the snake venom system"
+      },
       authors {
         names std {
           {
@@ -630,8 +634,18 @@ Seqdesc ::= pub {
           postal-code "2333 CR"
         }
       },
-      title "The king cobra genome reveals dynamic gene evolution and
- adaptation in the snake venom system"
+      from journal {
+        title {
+          jta "Proceedings of the National Academy of Sciences of the United
+ States of America"
+        },
+        imp {
+          date std {
+            year 2013
+          },
+          prepub in-press
+        }
+      }
     }
   }
 }
