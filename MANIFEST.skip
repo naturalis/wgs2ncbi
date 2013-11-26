@@ -1,0 +1,9 @@
+share/*/
+.DS_Store
+*.gz
+*.gff
+*.fasta
+*.txt
+*.sh
+*.pl
+.gitignore
