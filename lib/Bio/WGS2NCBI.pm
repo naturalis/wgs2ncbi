@@ -365,6 +365,7 @@ sub read_gene_line {
 		}
 	}
 	delete $args->{'gene'} if $args->{'gene'} and $args->{'gene'} eq 'hypothetical protein';
+	delete $args->{'gene'} if $args->{'product'} eq 'hypothetical protein';
 }
 
 sub write_features {
