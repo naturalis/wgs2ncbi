@@ -7,13 +7,13 @@ VERBOSE=
 GFF3DIR=share/gff3
 
 # directory for tbl and fasta files
-TBLDIR=share/tblfasta-new1
+TBLDIR=share/tblfasta
 if [ ! -d $TBLDIR ]; then
 	mkdir -p $TBLDIR
 fi
 
 # validation directory, contains val reports, ASN.1 output (and genbank files)
-ASN1DIR=share/asn1val-new1
+ASN1DIR=share/asn1val
 if [ ! -d $ASN1DIR ]; then
 	mkdir -p $ASN1DIR
 fi
@@ -83,9 +83,9 @@ if [ ! -d $GFF3DIR ]; then
 fi
 
 # create the table and fasta files
-#perl -Ilib -MBio::WGS2NCBI -e run - -d $TBLDIR -s $SOURCE -prefix $PREFIX -f $FASTA \
-#	-g $GFF3DIR -info $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -minlength $MINLENGTH \
-#	-minintron $MININTRON -masks $MASKS -products $PRODUCTS $VERBOSE 
+perl -Ilib -MBio::WGS2NCBI -e run - -d $TBLDIR -s $SOURCE -prefix $PREFIX -f $FASTA \
+	-g $GFF3DIR -info $INFO -a $AUTHORITY -c $CHUNKSIZE -l $LIMIT -minlength $MINLENGTH \
+	-minintron $MININTRON -masks $MASKS -products $PRODUCTS $VERBOSE 
 
 # create the genbank and validation files
 tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
