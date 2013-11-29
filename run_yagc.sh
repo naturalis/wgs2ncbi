@@ -24,5 +24,11 @@
 # create the table and fasta files
 perl -Ilib -MBio::WGS2NCBI -e run - -conf share/wgs2ncbi.ini
 
+# the interface should be:
+# wgs2ncbi pp -conf share/wgs2ncbi.ini
+# wgs2ncbi run -conf share/wgs2ncbi.ini
+# wgs2ncbi validate -conf share/wgs2ncbi.ini
+# wgs2ncbi package -conf share/wgs2ncbi.ini
+
 # create the genbank and validation files
 # tbl2asn -p $TBLDIR -t $TEMPLATE -M n -a r10k -l paired-ends -r $ASN1DIR -Z $DISCREP -V b
