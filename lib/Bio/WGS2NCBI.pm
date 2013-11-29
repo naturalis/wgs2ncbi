@@ -425,7 +425,7 @@ sub run {
 	}    
     
     # open the fasta file handle
-    open my $fastaFH, '<', $config->fasta or die $!;
+    open my $fastaFH, '<', $config->datafile or die $!;
     my $fastaPos = 0;   
     
     # counter to generate autoincrementing IDs for gene, mrna and protein
@@ -476,12 +476,12 @@ sub run {
             # generate a new name indicating the range
             my $upper = $seq_counter + $config->chunksize - 1;
             my $stem = "combined_${seq_counter}-${upper}";
-            open $tblFH, '>', $config->dir . "/${stem}.tbl" or die $!;   
-            open $scaffoldFH, '>', $config->dir . "/${stem}.fsa" or die $!;     
+            open $tblFH, '>', $config->datadir . "/${stem}.tbl" or die $!;   
+            open $scaffoldFH, '>', $config->datadir . "/${stem}.fsa" or die $!;     
         }
         
         # get the features for that scaffold/chromosome, if we have them
-        my $gff3 = $config->gff3 . "/${chr}.gff3";
+        my $gff3 = $config->gff3dir . "/${chr}.gff3";
         if ( -e $gff3 ) {
             open my $gff3FH, '<', $gff3 or die $!;  
             my $features = read_features( 
