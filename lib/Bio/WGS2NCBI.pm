@@ -2,6 +2,7 @@ package Bio::WGS2NCBI;
 use strict;
 use warnings;
 use URI::Escape;
+use Archive::Tar;
 use Bio::WGS2NCBI::Seq;
 use Bio::WGS2NCBI::Logger;
 use Bio::WGS2NCBI::Config;
@@ -15,7 +16,7 @@ our $VERSION = 1.0;
 # export the run function
 require Exporter;
 use base 'Exporter';
-our @EXPORT = qw(run);
+our @EXPORT = qw(process prepare compress);
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -360,6 +361,11 @@ sub read_gene_line {
 	if ( my $file = $config->products ) {
 		my %map = $config->read_ini( $file );
 		if ( my $fixed = $map{ $args->{'product'} } ) {
+			if ( ref $fixed and ref $fixed eq 'ARRAY' ) {
+				$fixed = pop(@{$fixed});			
+				WARN "multiple mappings for the same product, will use last seen: '"
+				. $args->{'product'}."' => '".$fixed."'";
+			}
 			INFO "replacing '".$args->{'product'}."' with '$fixed' from '$file'";
 			$args->{'product'} = $fixed; 
 		}
@@ -404,7 +410,7 @@ sub mask_seq {
 	$seq->seq( \$raw );
 }
 
-sub run {
+sub process {
     my $config = Bio::WGS2NCBI::Config->new;
     
     # read the info file, if any
@@ -502,6 +508,73 @@ sub run {
         # write the scaffold
         write_fasta( $seq->trunc( $offset + 1, $offset + $length ), $scaffoldFH );        
     }   
+}
+
+sub prepare {
+	my $config   = Bio::WGS2NCBI::Config->new;
+	my %types    = map { $_ => 1 } $config->feature;
+	my $gff3file = $config->gff3file;
+	my $gff3dir  = $config->gff3dir;
+	my $source   = $config->source;
+	my $chr_idx  = 0;
+	my $src_idx  = 1;
+	my $type_idx = 2;
+	my @queue;
+	my %handles;
+
+	# open file handle
+	INFO "going to pre-process annotations in $gff3file";
+	open my $fh, '<', $gff3file or die;
+	
+	# iterate over lines
+	LINE: while(<$fh>) {
+		next LINE if /^#/;
+		my @line = split /\t/, $_;
+		
+		# we will automatically skip over sequence lines as they won't have columns
+		next LINE if not $line[$src_idx] or $line[$src_idx] ne $source;
+		next LINE if not $line[$type_idx] or not $types{$line[$type_idx]};
+		my $chr = $line[$chr_idx];
+	
+		# we keep up to 100 file handles (which is max on POSIX). once we
+		# reach that number we close existing ones on a first in, first out basis
+		if ( not $handles{$chr} ) {
+			if ( scalar @queue == 100 ) {
+				my $fifo = shift @queue;
+				close $handles{$fifo};
+				delete $handles{$fifo};
+			}
+			open $handles{$chr}, '>', "${gff3dir}/${chr}.gff3" or die $!;
+			push @queue, $chr;
+		}
+		my $fh = $handles{$chr};
+		print $fh $_;
+	}
+}
+
+sub compress {
+	my $config  = Bio::WGS2NCBI::Config->new;
+	my $tar     = Archive::Tar->new;
+	my $sqndir  = $config->outdir;
+	my $archive = $config->archive;
+	
+	# open directory handle
+	INFO "going to add *.sqn files from $sqndir to $archive";
+	opendir my $dh, $sqndir or die $!;
+	
+	# iterate over files
+	my $counter;
+	while( my $entry = readdir $dh ) {
+		if ( $entry =~ /\.sqn$/ ) {
+			$counter++;
+			$tar->add_files( "${sqndir}/${entry}" );
+		}	
+	}
+	INFO "added $counter file(s)";
+	
+	# compress results
+	INFO "going to compress $archive";
+	$tar->write( $archive, COMPRESS_GZIP );
 }
 
 1;
