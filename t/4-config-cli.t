@@ -5,7 +5,6 @@ use Bio::WGS2NCBI::Logger;
 
 BEGIN { 
 	use_ok('Bio::WGS2NCBI::Config'),
-	WARN "*** warnings here are normal! ***";
 	my %config = Bio::WGS2NCBI::Config->read_ini('share/wgs2ncbi.ini');
 	for my $key ( keys %config ) {
 		push @ARGV, "-$key" => $config{$key};
@@ -31,6 +30,7 @@ ok( $config->limit == 0, 'limit' );
 ok( $config->minintron == 10, 'minintron' );
 ok( $config->outdir eq 'share/asn1val', 'outdir' );
 ok( $config->discrep eq 'share/discrep.txt', 'discrep' );
-ok( ! $config->verbosity, 'verbosity' );
+ok( $config->verbosity == 1, 'verbosity' );
 
-
+my @features = $config->feature;
+ok( @features == 4, 'feature' );

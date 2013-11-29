@@ -13,4 +13,4 @@ BEGIN {
 	use_ok('Bio::WGS2NCBI::Logger');
 }
 
-ok( INFO "*** info msg here is normal ***" == 2 );
+ok( INFO "*** testing, testing, please ignore ***" == 2 );

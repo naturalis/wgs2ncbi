@@ -26,6 +26,7 @@ ok( $config->limit == 0, 'limit' );
 ok( $config->minintron == 10, 'minintron' );
 ok( $config->outdir eq 'share/asn1val', 'outdir' );
 ok( $config->discrep eq 'share/discrep.txt', 'discrep' );
-ok( ! $config->verbosity, 'verbosity' );
+ok( $config->verbosity == 1, 'verbosity' );
 
-
+my @features = $config->feature;
+ok( @features == 4, 'feature' );
