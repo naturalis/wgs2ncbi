@@ -14,7 +14,7 @@ sub _file {
 		if ( not $value or not -e $value ) {
 			die "argument -$key needs an existing file, not '$value'";
 		}
-		$self->{$key} = $value;
+		$self->$key( $value );
 	}
 	return 's';
 }
@@ -25,7 +25,7 @@ sub _int {
 		if ( not defined $value or $value !~ /^\d+/ ) {
 			die "argument -$key needs an integer, not '$value'";
 		}
-		$self->{$key} = $value;
+		$self->$key( $value );
 	}
 	return 'i';
 }
@@ -43,7 +43,7 @@ sub _dir {
 		else {
 			WARN "directory '$value' already exists, contents may be overwritten";
 		}
-		$self->{$key} = $value;
+		$self->$key( $value );
 	}
 	return 's';
 }
@@ -54,7 +54,7 @@ sub _string {
 		if ( not $value ) {
 			die "argument -$key needs a string, not '$value'";
 		}
-		$self->{$key} = $value;
+		$self->$key( $value );
 	}
 	return 's';
 }
@@ -80,7 +80,7 @@ my %fields = (
 	'discrep'   => \&_string,
 );
 
-sub _verbosity {
+sub verbosity {
 	my $v = shift;
 	if ( $v and $v =~ /^(?:1|2|3)$/ ) {
 		$Bio::WGS2NCBI::Logger::Verbosity = $v;
@@ -90,7 +90,14 @@ sub _verbosity {
 {
 	no strict 'refs';
 	for my $key ( keys %fields ) {
-		*$key = sub { shift->{$key} };
+		next if $key eq 'verbosity';
+		*$key = sub {
+			my $self = shift;
+			if ( @_ ) {
+				$self->{$key} = shift;
+			}
+			return $self->{$key};
+		};
 	}
 }
 
@@ -100,12 +107,12 @@ sub new {
 		return $SINGLETON;
 	}
 	else {
+		$SINGLETON = {};
+		bless $SINGLETON, $class;
 	
 		# the location of a config ini file like wgs2ncbi.ini can be defined in an
 		# environment variable called WGS2NCBI. This file will be read first.
-		my %config  = $class->read_ini($ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
-		$SINGLETON  = \%config;
-		_verbosity($config{'verbosity'});
+		$SINGLETON->_selfconfig(ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
 		
 		# the location of a config ini file can also be provided on the command line
 		# using the -conf argument. Whether this overrides other command line arguments
@@ -113,8 +120,7 @@ sub new {
 		# given, as they are processed from left to right.
 		my %options = (
 			'conf=s' => sub {
-				%config = $class->read_ini(pop);
-				$SINGLETON = \%config;
+				$SINGLETON->_selfconfig(pop);
 			},
 			'verbosity=i' => sub {
 				my $v = pop;
@@ -136,6 +142,15 @@ sub new {
 		GetOptions(%options);
     	return bless $SINGLETON, $class;
     }
+}
+
+sub _selfconfig {
+	my ( $self, $file ) = @_;
+	my %config = $self->read_ini($file);
+	for my $key ( keys %config ) {
+		my $sub = $fields{$key};
+		$sub->( $key, $config{$key}, $self );
+	}
 }
 
 sub read_ini {
