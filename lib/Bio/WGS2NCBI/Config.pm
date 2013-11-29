@@ -3,8 +3,9 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Data::Dumper;
-use File::Path 'make_path';
+use Bio::WGS2NCBI;
 use Bio::WGS2NCBI::Logger;
+use File::Path 'make_path';
 
 my $SINGLETON;
 
@@ -41,7 +42,7 @@ sub _dir {
 			make_path( $value );
 		}
 		else {
-			WARN "directory '$value' already exists, contents may be overwritten";
+			INFO "directory '$value' already exists, contents may be overwritten";
 		}
 		$self->$key( $value );
 	}
@@ -57,6 +58,17 @@ sub _string {
 		$self->$key( $value );
 	}
 	return 's';
+}
+
+sub _array {
+	my ( $key, $value, $self ) = @_;
+	if ( $key ) {
+		if ( not $value ) {
+			die "argument -$key needs a string, not '$value'";
+		}
+		$self->$key( $value );
+	}
+	return 's@';
 }
 
 my %fields = (
@@ -78,26 +90,43 @@ my %fields = (
 	'minintron' => \&_int,
 	'outdir'    => \&_dir,
 	'discrep'   => \&_string,
+	'feature'   => \&_array,
+	'tbl2asn'   => \&_string,
+	'archive'   => \&_string,
 );
 
 sub verbosity {
-	my $v = shift;
+	my ( $self, $v ) = @_;
 	if ( $v and $v =~ /^(?:1|2|3)$/ ) {
 		$Bio::WGS2NCBI::Logger::Verbosity = $v;
 	}
+	return $Bio::WGS2NCBI::Logger::Verbosity;
 }
 
 {
 	no strict 'refs';
 	for my $key ( keys %fields ) {
 		next if $key eq 'verbosity';
-		*$key = sub {
-			my $self = shift;
-			if ( @_ ) {
-				$self->{$key} = shift;
-			}
-			return $self->{$key};
-		};
+		my $type = $fields{$key}->();
+		if ( $type =~ /\@/ ) {
+			*$key = sub {
+				my $self = shift;
+				$self->{$key} = [] if not $self->{$key};
+				if ( @_ ) {										
+					push @{ $self->{$key} }, map { ref $_ eq 'ARRAY' ? @$_ : $_ } @_;
+				}
+				return @{ $self->{$key} };
+			};		
+		}
+		else {
+			*$key = sub {
+				my $self = shift;
+				if ( @_ ) {
+					$self->{$key} = shift;
+				}
+				return $self->{$key};
+			};
+		}
 	}
 }
 
@@ -112,21 +141,16 @@ sub new {
 	
 		# the location of a config ini file like wgs2ncbi.ini can be defined in an
 		# environment variable called WGS2NCBI. This file will be read first.
-		$SINGLETON->_selfconfig(ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
+		$SINGLETON->_selfconfig($ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
 		
 		# the location of a config ini file can also be provided on the command line
 		# using the -conf argument. Whether this overrides other command line arguments
 		# or vice versa depends on the order in which the command line arguments are
 		# given, as they are processed from left to right.
 		my %options = (
-			'conf=s' => sub {
-				$SINGLETON->_selfconfig(pop);
-			},
-			'verbosity=i' => sub {
-				my $v = pop;
-				$SINGLETON->{'verbosity'} = $v;
-				_verbosity($v);
-			}
+			'conf=s'      => sub { $SINGLETON->_selfconfig(pop) },
+			'verbosity=i' => sub { $SINGLETON->verbosity(pop) },
+			'help|?'      => sub { Bio::WGS2NCBI->help }
 		);
 		
 		# make the other command line arguments in Getopt::Long style
