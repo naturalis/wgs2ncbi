@@ -5,6 +5,5 @@
 *.gff
 *.gff3
 *.txt
-discrep.txt
 share/*/
-share/contamination_dups
+Makefile.old
