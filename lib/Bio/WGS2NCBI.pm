@@ -15,7 +15,7 @@ our $VERSION = 1.0;
 # export the run function
 require Exporter;
 use base 'Exporter';
-our @EXPORT = qw(run fix_products fix_deflines mask_sequences);
+our @EXPORT = qw(run);
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -360,7 +360,7 @@ sub read_gene_line {
 	if ( my $file = $config->products ) {
 		my %map = $config->read_ini( $file );
 		if ( my $fixed = $map{ $args->{'product'} } ) {
-			WARN "replacing '".$args->{'product'}."' with '$fixed' from '$file'";
+			INFO "replacing '".$args->{'product'}."' with '$fixed' from '$file'";
 			$args->{'product'} = $fixed; 
 		}
 	}
