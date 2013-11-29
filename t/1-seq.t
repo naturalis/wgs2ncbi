@@ -16,6 +16,6 @@ ok( $seq->length == 10 );
 ok( $seq->id eq 'foo' );
 ok( $seq->desc eq 'bar' );
 
-my $trunc = $seq->trunc(1,4);
+my $trunc = $seq->trunc(1,3);
 ok( $trunc->seq eq 'AGC' );
 ok( $trunc->revcom->seq eq 'GCT' );
