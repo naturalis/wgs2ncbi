@@ -8,5 +8,5 @@ WriteMakefile(
     'ABSTRACT_FROM' => 'lib/Bio/WGS2NCBI.pm',
     'AUTHOR'        => 'Rutger Vos <Rutger.Vos@naturalis.nl>',
     'LICENSE'       => 'perl',
-    'PL_FILES'      => { 'script/wgs2ncbi.PL' => 'script/wgs2ncbi' },
+    'EXE_FILES'     => [ 'script/wgs2ncbi' ],
 );
