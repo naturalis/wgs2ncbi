@@ -419,16 +419,15 @@ sub process {
     
     # read the masks, if any
     my %masks;
-	if ( my $file = $config->masks ) {
+    if ( my $file = $config->masks ) {
 	
-		# read the masks file, make values uniformly array refs
-		my %masks = $config->read_ini( $file );
-		for my $key ( keys %masks ) {
-			$masks{$key} = [ $masks{$key} ] if not ref $masks{$key};
-		}
-		INFO "read masks for ".scalar(keys(%masks))." sequences";	
-	
-	}    
+        # read the masks file, make values uniformly array refs
+        %masks = $config->read_ini( $file );
+        for my $key ( keys %masks ) {
+            $masks{$key} = [ $masks{$key} ] if not ref $masks{$key};
+        }
+        INFO "read masks for ".scalar(keys(%masks))." sequences";
+    }
     
     # open the fasta file handle
     open my $fastaFH, '<', $config->datafile or die $!;
