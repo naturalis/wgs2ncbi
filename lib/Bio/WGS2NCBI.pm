@@ -16,7 +16,7 @@ our $VERSION = 1.0;
 # export the run function
 require Exporter;
 use base 'Exporter';
-our @EXPORT = qw(process prepare compress);
+our @EXPORT = qw(process prepare compress convert);
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -344,7 +344,7 @@ sub read_gene_line {
             }
         }
         if ( $args->{'gene'} and $args->{'product'} eq 'hypothetical protein' ) {
-        	$args->{'product'}  = $args->{'gene'};
+        	$args->{'product'} = $args->{'gene'};
         }
     }
     
@@ -370,8 +370,26 @@ sub read_gene_line {
 			$args->{'product'} = $fixed; 
 		}
 	}
-	delete $args->{'gene'} if $args->{'gene'} and $args->{'gene'} eq 'hypothetical protein';
-	delete $args->{'gene'} if $args->{'product'} eq 'hypothetical protein';
+	
+	# check to see if we should delete uninformative gene symbols
+	if ( $args->{'gene'} and ( $args->{'gene'} eq 'hypothetical protein' ) ) {
+		WARN "gene symbol was set to 'hypothetical protein', deleting...";
+		delete $args->{'gene'};
+	}
+	if ( $args->{'gene'} and ( $args->{'product'} eq 'hypothetical protein' ) ) {
+		my $sym = $args->{'gene'};
+		WARN "product was 'hypothetical protein', move gene name '$sym' to note";
+		delete $args->{'gene'};	
+		if ( not defined $args->{'note'} ) {	
+			$args->{'note'} = $sym;
+		}
+		elsif ( not ref $args->{'note'} ) {
+			$args->{'note'} = [ $args->{'note'}, $sym ];
+		}
+		else {
+			push @{ $args->{'note'} }, $sym;
+		}
+	}
 }
 
 sub write_features {
@@ -574,6 +592,18 @@ sub compress {
 	# compress results
 	INFO "going to compress $archive";
 	$tar->write( $archive, COMPRESS_GZIP );
+}
+
+sub convert {
+	my $config = Bio::WGS2NCBI::Config->new;
+	my $INDIR   = $config->datadir;
+	my $TMPL    = $config->template;
+	my $OUTDIR  = $config->outdir;
+	my $DISCREP = $config->discrep;
+	my $TBL2ASN = $config->tbl2asn;	
+	my $command = "$TBL2ASN -p $INDIR -t $TMPL -M n -a r10k -l paired-ends -r $OUTDIR -Z $DISCREP";
+	INFO "going to execute command '$command'";
+	exec $command;
 }
 
 1;
