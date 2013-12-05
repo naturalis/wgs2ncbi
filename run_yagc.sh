@@ -22,12 +22,14 @@
 # fi
 
 # create the table and fasta files
-perl -Ilib -MBio::WGS2NCBI -e process - -conf share/wgs2ncbi.ini
+# perl -Ilib -MBio::WGS2NCBI -e process - -conf share/wgs2ncbi.ini
+
+perl -Ilib -MBio::WGS2NCBI -e convert - -conf share/wgs2ncbi.ini
 
 # the interface should be:
 # wgs2ncbi prepare -conf share/wgs2ncbi.ini
 # wgs2ncbi process -conf share/wgs2ncbi.ini
-# wgs2ncbi validate -conf share/wgs2ncbi.ini
+# wgs2ncbi convert -conf share/wgs2ncbi.ini
 # wgs2ncbi compress -conf share/wgs2ncbi.ini
 
 # create the genbank and validation files
