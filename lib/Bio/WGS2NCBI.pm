@@ -469,10 +469,7 @@ sub process {
         $seq->desc($desc);
         my $length = $seq->length;
         my $chr    = $seq->id;
-        
-        # mask any additional regions
-        mask_seq($seq, @{$masks{$chr}}) if $masks{$chr};
-        
+                
         # compute offset at beginning, if any. e.g. if NNCGTNN, $offset is 2
         if ( $offset = get_non_missing_index($seq) ) {
             INFO "leading ${offset}bp gap in $chr, will strip this and apply offset";
@@ -511,7 +508,7 @@ sub process {
             	$gff3FH,  # file handle of focal file
             	$counter, # counter for generating locus tags
             	$config,  # config object
-            	$seq,     # string reference of raw sequence
+            	$seq,     # sequence object
             	$offset,  # start offset
             	$last_non_missing_index, # last true seq character
             );  
@@ -522,8 +519,10 @@ sub process {
             print $tblFH '>Features ', $chr, "\n";
         }
         
-        # write the scaffold
-        write_fasta( $seq->trunc( $offset + 1, $offset + $length ), $scaffoldFH );        
+		# truncate, mask, serialize
+        my $trunc = $seq->trunc( $offset + 1, $offset + $length );
+        mask_seq($trunc, @{$masks{$chr}}) if $masks{$chr};        
+        write_fasta( $trunc, $scaffoldFH );        
     }   
 }
 
