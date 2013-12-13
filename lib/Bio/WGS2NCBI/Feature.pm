@@ -2,6 +2,42 @@ package Bio::WGS2NCBI::Feature;
 
 my $IDCOUNTER = 1;
 
+=head1 NAME
+
+Bio::WGS2NCBI::Feature - base class for sequence features
+
+=head1 DESCRIPTION
+
+This is the base class for all sequence feature classes for which 
+L<Bio::WGS2NCBI> instantiates objects when reading a genome annotation.
+In particular, this class manages the coordinates (1-based inclusive
+start/stop) for the region(s) that the feature spans, the internal unique
+identifiers for all features, and the serialization logic.
+
+The API for features is deliberately sparse as it is only intended to be
+used by L<Bio::WGS2NCBI> and may change in future versions (e.g. in order 
+to become compatible with BioPerl features so that other annotation file 
+formats can be used as well).
+
+=head1 METHODS
+
+=over
+
+=item new()
+
+Returns a new feature. This constructor is called with the 'type' 
+argument to create any of the subclasses. For example:
+
+ my $gene = Bio::WGS2NCBI::Feature->new( type => 'gene' );
+
+In addition, the values for all methods except 'qualifiers', 'id'
+and 'to_string' can be set here by using the method name as the
+key name of a named argument. For example:
+
+ my $gene = Bio::WGS2NCBI::Feature->new( type => 'gene', gene => 'CO1' );
+
+=cut
+
 sub new {
     my $class = shift;
     my %args = @_;
@@ -16,15 +52,42 @@ sub new {
     return bless $self, $class;
 }
 
+=item range()
+
+Returns a list of ranges, specified as start/stop coordinates, 
+that the feature spans. Optional argument ([ $start, $stop ]) 
+grows the set of ranges by one additional range.
+
+=cut
+
 sub range { 
     my $self = shift;
     push @{ $self->{'range'} }, shift if @_;
     return @{ $self->{'range'} };
 }
 
+=item id()
+
+Returns a unique integer ID for the feature.
+
+=cut
+
 sub id { shift->{'id'} }
 
+=item qualifiers()
+
+Returns a list of qualifier names. This is an empty ("abstract") method
+that the subclasses need to override.
+
+=cut
+
 sub qualifiers { }
+
+=item to_string()
+
+Returns a string representation of the feature in NCBI's tbl format.
+
+=cut
 
 sub to_string {
     my $self = shift;
@@ -47,5 +110,9 @@ sub to_string {
     }
     return $result;
 }
+
+=back
+
+=cut
 
 1;
