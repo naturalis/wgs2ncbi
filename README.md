@@ -61,8 +61,8 @@ allows us to quickly find the annotations for a given scaffold (i.e. random acce
 can filter out included things we don't want. To this end is provided the Perl script
 "explode_gff3.pl", which is run as:
 
- `perl explode_gff3.pl -gff3 $GFF3 -source $SOURCE -f CDS -f gene -f five_prime_UTR \  
- -f three_prime_UTR -d $GFF3DIR`
+    perl explode_gff3.pl -gff3 $GFF3 -source $SOURCE -f CDS -f gene -f five_prime_UTR \  
+      -f three_prime_UTR -d $GFF3DIR
 
 Where the argument values need to be set to the following:
 
@@ -84,8 +84,8 @@ sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI guid
 
 The script is run as:
 
- `perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
- -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE`
+    perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
+     -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE
 
 Where the argument values need to be set to the following:
 
@@ -116,8 +116,8 @@ Once the submission template, the FASTA files and the feature tables are produce
 tbl2asn program provided by NCBI needs to be run on the folder that contains these files.
 A typical invocation is something like:
 
- `tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \  
- -Z $DISCREP -V $VERIFY`
+    tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \  
+      -Z $DISCREP -V $VERIFY
 
 Where the argument values need to be set to the following:
 
