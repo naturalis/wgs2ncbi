@@ -1,4 +1,8 @@
 #!/usr/bin/perl
+BEGIN {
+	use FindBin '$Bin';
+	use lib "$Bin/../lib";
+}
 use Bio::WGS2NCBI;
 my $action = shift;
 if ( $action and Bio::WGS2NCBI->can($action) ) {
