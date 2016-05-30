@@ -29,11 +29,11 @@ Since our starting material is one giant FASTA file that contains the scaffolds 
 file with the features, we need to do the following:
 
 1. use the GenBank web form to create the submission template
-2. explode the GFF3 file into smaller ones, one for each scaffold
-3. split the FASTA file into scaffolds and feature tables
-4. run tbl2asn on the folder with the intermediate files
+2. explode the GFF3 file into smaller ones, one for each scaffold: `wgs2ncbi prepare`
+3. split the FASTA file into scaffolds and feature tables: `wgs2ncbi process`
+4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert`
 5. verify output from tbl2asn
-6. upload .sqn files
+6. upload .sqn files: `wgs2ncbi compress`
 
 Here now follow more details about each of these steps:
 
@@ -58,18 +58,18 @@ quick lookups of features for a given scaffold:
 
 To remedy this we "explode" the GFF3 file into separate files, one for each scaffold. This
 allows us to quickly find the annotations for a given scaffold (i.e. random access) and we
-can filter out included things we don't want. To this end is provided the Perl script
-"explode_gff3.pl", which is run as:
+can filter out included things we don't want. This is done using the following command:
 
-    perl explode_gff3.pl -gff3 $GFF3 -source $SOURCE -f CDS -f gene -f five_prime_UTR \  
-      -f three_prime_UTR -d $GFF3DIR
+    wgs2ncbi prepare -conf <config.ini>
 
+<!--
 Where the argument values need to be set to the following:
 
 * GFF3    = the input GFF3 file
 * SOURCE  = source of annotations to trust, i.e. the 2nd column in the GFF3, e.g. "maker"
 * GFF3DIR = the output directory. This needs to exist already
 * the -f <feature> is used multiple times and specifies features to include.
+-->
 
 Splitting the FASTA file
 ------------------------
@@ -82,6 +82,9 @@ however, may result in very many files. Optionally you can provide a parameter t
 indicate that sequences and feature tables are lumped together with up to $CHUNKSIZE 
 sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI guidelines.
 
+    wgs2ncbi process -conf <config.ini>
+
+<!--
 The script is run as:
 
     perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
@@ -100,6 +103,7 @@ Where the argument values need to be set to the following:
 * CHUNKSIZE = number of scaffolds to combine in one file, e.g. 10000
 
 The script has no additional dependencies so it should be useable by people who aren't me.
+-->
 
 A word of caution: this script produces in some cases tens of thousands of files, each of
 which have a name that matches the first word in the FASTA definition line and the *.fsa 
@@ -114,8 +118,11 @@ Running tbl2asn
 
 Once the submission template, the FASTA files and the feature tables are produced, the
 tbl2asn program provided by NCBI needs to be run on the folder that contains these files.
-A typical invocation is something like:
+A typical invocation using the wrapper goes like this:
 
+    wg2ncbi convert -conf <config.ini>
+
+<!--
     tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \  
       -Z $DISCREP -V $VERIFY
 
@@ -135,8 +142,12 @@ file that reports potential discrepancies ($DISCREP) which needs to be vetted ag
 [NCBI's instructions](https://www.ncbi.nlm.nih.gov/genbank/asndisc). Lastly, if additional
 $VERIFY arguments were provided (e.g. "b") there will be .gbf files inside $ASN1DIR which
 will show (roughly) what the results will look like on the NCBI website.
+-->
 
 Uploading to NCBI
 -----------------
 
-Tip: Note that NCBI **does** accept .tar.gz archives.
+Tip: Note that NCBI **does** accept .tar.gz archives, which means you can prepare your
+upload as follows:
+
+    wgs2ncbi compress -conf <config.ini>
