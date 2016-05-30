@@ -1,6 +1,7 @@
 package Bio::WGS2NCBI;
 use strict;
 use warnings;
+use Pod::Usage;
 use URI::Escape;
 use Archive::Tar;
 use Bio::WGS2NCBI::Seq;
@@ -27,6 +28,10 @@ my $end_idx    = 4;
 my $strand_idx = 6;
 my $codon_idx  = 7;
 my $meta_idx   = 8;
+
+sub help {
+	pod2usage({-verbose => 2});
+}
 
 sub read_fasta {
     my ( $fh, $pos ) = @_;
