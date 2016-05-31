@@ -62,48 +62,18 @@ can filter out included things we don't want. This is done using the following c
 
     wgs2ncbi prepare -conf <config.ini>
 
-<!--
-Where the argument values need to be set to the following:
-
-* GFF3    = the input GFF3 file
-* SOURCE  = source of annotations to trust, i.e. the 2nd column in the GFF3, e.g. "maker"
-* GFF3DIR = the output directory. This needs to exist already
-* the -f <feature> is used multiple times and specifies features to include.
--->
-
 Splitting the FASTA file
 ------------------------
 
-Included in this archive is a Perl script ("yagc.pl") that takes the big FASTA
-file and chops it up into multiple FASTA files and tbl files, which it writes into a 
-folder called "submission" (or whatever was provided on the command line). The default
-behavior is to write each scaffold (and its features) to a separate FASTA file. This,
-however, may result in very many files. Optionally you can provide a parameter to 
-indicate that sequences and feature tables are lumped together with up to $CHUNKSIZE 
-sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI guidelines.
+Once the annotations are exploded, we then need to take the big FASTA file and chop it 
+up into multiple FASTA files and tbl files, which need to be written into an output 
+folder. The default behavior is to write each scaffold (and its features) to a separate 
+FASTA file. This, however, may result in very many files. Optionally you can provide a 
+parameter to indicate that sequences and feature tables are lumped together with up to 
+$CHUNKSIZE sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI 
+guidelines.
 
     wgs2ncbi process -conf <config.ini>
-
-<!--
-The script is run as:
-
-    perl yagc.pl -d $TBLDIR -p $PREFIX -f $FASTA -g $GFF3DIR -i $INFO \  
-     -a $AUTHORITY -l $LIMIT -c $CHUNKSIZE $VERBOSE
-
-Where the argument values need to be set to the following:
-
-* TBLDIR    = the output directory to write to. This needs to exist already.
-* PREFIX    = a locus_tag prefix that becomes part of transcript/protein IDs, e.g. "OPHA_"
-* FASTA     = the input genome in FASTA format
-* GFF3DIR   = the directory with exploded annotations
-* INFO      = a simple file with key=value pairs, e.g. see info.ini
-* AUTHORITY = prefix that identifies a naming authority, e.g. "gnl|NaturalisBC|"
-* LIMIT     = optional number of scaffolds to produce, for test runs, e.g. 20
-* VERBOSE   = increments the number of progress messages, e.g. "-v" or "-v -v"
-* CHUNKSIZE = number of scaffolds to combine in one file, e.g. 10000
-
-The script has no additional dependencies so it should be useable by people who aren't me.
--->
 
 A word of caution: this script produces in some cases tens of thousands of files, each of
 which have a name that matches the first word in the FASTA definition line and the *.fsa 
@@ -121,28 +91,6 @@ tbl2asn program provided by NCBI needs to be run on the folder that contains the
 A typical invocation using the wrapper goes like this:
 
     wg2ncbi convert -conf <config.ini>
-
-<!--
-    tbl2asn -p $TBLDIR -t $TEMPLATE -M $MASTERFLAG -a $TYPE -l $LINKAGE -r $ASN1DIR \  
-      -Z $DISCREP -V $VERIFY
-
-Where the argument values need to be set to the following:
-
-* TBLDIR     = the directory that was populated by yagc.pl
-* TEMPLATE   = submission template from http://www.ncbi.nlm.nih.gov/WebSub/template.cgi
-* MASTERFLAG = the "master genome flag", e.g. "n" for normal
-* TYPE       = the file type, e.g. r10k = Runs of 10+ Ns are gaps, 100 Ns are known length
-* LINKAGE    = evidence to assert linkage across assembly gaps, e.g. "paired-ends"
-* ASN1DIR    = output directory to write to
-* DISCREP    = file name of discrepancy report
-* VERIFY     = output for verification purposes, e.g. "b" for genbank flat files
-
-When run, this will have produced the required .sqn files. In addition there will be a 
-file that reports potential discrepancies ($DISCREP) which needs to be vetted against 
-[NCBI's instructions](https://www.ncbi.nlm.nih.gov/genbank/asndisc). Lastly, if additional
-$VERIFY arguments were provided (e.g. "b") there will be .gbf files inside $ASN1DIR which
-will show (roughly) what the results will look like on the NCBI website.
--->
 
 Uploading to NCBI
 -----------------
