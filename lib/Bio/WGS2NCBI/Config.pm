@@ -13,7 +13,7 @@ sub _file {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value or not -e $value ) {
-			ERROR "argument -$key needs an existing file, not '$value'";
+			ERROR "Argument -$key needs an existing file, not '$value'";
 			exit(1);
 		}
 		$self->$key( $value );
@@ -25,7 +25,8 @@ sub _int {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not defined $value or $value !~ /^\d+/ ) {
-			die "argument -$key needs an integer, not '$value'";
+			ERROR "Argument -$key needs an integer, not '$value'";
+			exit(1);
 		}
 		$self->$key( $value );
 	}
@@ -36,15 +37,15 @@ sub _dir {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value ) {
-			ERROR "argument -$key needs a name for a directory, not '$value'";
+			ERROR "Argument -$key needs a name for a directory, not '$value'";
 			exit(1);
 		}
 		elsif ( not -d $value ) {
-			INFO "will create directory $value";
+			INFO "Will create directory $value";
 			make_path( $value );
 		}
 		else {
-			WARN "directory '$value' already exists, contents (if any) may be overwritten";
+			WARN "Directory '$value' already exists, contents (if any) may be overwritten";
 		}
 		$self->$key( $value );
 	}
@@ -55,7 +56,8 @@ sub _string {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value ) {
-			die "argument -$key needs a string, not '$value'";
+			ERROR "Argument -$key needs a string, not '$value'";
+			exit(1);
 		}
 		$self->$key( $value );
 	}
@@ -66,7 +68,8 @@ sub _array {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value ) {
-			die "argument -$key needs a string, not '$value'";
+			ERROR "Argument -$key needs a string, not '$value'";
+			exit(1);
 		}
 		$self->$key( $value );
 	}
