@@ -88,7 +88,7 @@ sub write_fasta {
 
 sub read_features {
     my ( $fh, $counter, $config, $seq, $offset, $last_non_missing_index ) = @_;
-    INFO "reading features for ".$seq->id;
+    INFO "Reading features for ".$seq->id;
     
     # instantiate new set
     my $set = Bio::WGS2NCBI::FeatureSet->new( 'seqid' => $seq->id );
@@ -123,7 +123,7 @@ sub read_features {
         	# leading gaps
         	if ( $line[$start_idx] - $offset <= 0 ) {
         		$skipgene = 1;
-        		WARN "first gene on ".$seq->id()." outside of allowed range, skipping";
+        		WARN "First gene on ".$seq->id()." outside of allowed range, skipping";
         		next LINE;
         	}
         	else {
@@ -146,7 +146,7 @@ sub read_features {
             
             # read the line
             read_gene_line(\%args,@line);
-            INFO "reading gene " . $args{'product'};
+            DEBUG "Gene: " . $args{'product'};
             
             # create the object
             $gene = Bio::WGS2NCBI::Feature->new(%args);
@@ -157,7 +157,7 @@ sub read_features {
         
             # we only create one CDS and one mRNA object, which both span multiple ranges
             if ( not $cds and not $mrna ) {
-                INFO "instantiating new CDS and mRNA";
+                DEBUG "Instantiating new CDS and mRNA";
             
                 # create the CDS                
                 $args{'product'}       = $gene->product;
@@ -202,7 +202,7 @@ sub read_features {
 
 sub annotate_short_introns {
     my ( $gene, $cds, $mrna, $set, $config ) = @_;
-    INFO "checking for short introns in ".$gene->product;     
+    DEBUG "Checking for short introns in ".$gene->product;     
     my @cds_ranges = $cds->range;
     if ( @cds_ranges > 1 ) {
     	for my $i ( 1 .. $#cds_ranges ) {
@@ -210,13 +210,13 @@ sub annotate_short_introns {
     		if ( $intron_length <= $config->minintron ) {
     			$set->remove($cds,$mrna);
     			$gene->note('nonfunctional due to frameshift');
-    			WARN "found $intron_length nt intron in ".$gene->product;
+    			WARN "Found $intron_length nt intron in '".$gene->product."', marked pseudo-gene";
     			return 0;
     		}
     	}
     }
     else {
-    	INFO "gene had only one exon, no intron lengths to validate in ".$gene->product;
+    	DEBUG "Gene had only one exon, no intron lengths to validate in ".$gene->product;
     }
     $gene->note('');
 	return 1;
@@ -224,7 +224,7 @@ sub annotate_short_introns {
 
 sub annotate_partials {
     my ( $gene, $cds, $mrna, $seq ) = @_;
-    INFO "finalizing gene ".$gene->product; 
+    DEBUG "Finalizing gene ".$gene->product; 
     
     # the 5' and 3' untranslated regions need to have been observed
     # in order to be sure about the gene (and, transitively, CDS and mRNA) coordinates
@@ -243,11 +243,11 @@ sub annotate_partials {
 		$generange->[0] = '<' . $generange->[0];
 		$mrna_ranges[0]->[0] = '<' . $mrna_ranges[0]->[0];
 		$cds_ranges[0]->[0]  = '<' .  $cds_ranges[0]->[0];
-		INFO "no 5' UTR";
+		DEBUG "No 5' UTR";
     }
     else {
 		$mrna_ranges[0]->[0] = $five_prime_UTR[0]->[0];     
-		INFO "found 5' UTR";
+		DEBUG "Found 5' UTR";
     }
     
     # if no 3' UTR was seen we don't know where the gene and mRNA ended, but we
@@ -266,16 +266,16 @@ sub annotate_partials {
     		$stop_codon = $seq->trunc( $cds_end, $cds_end + 2 )->revcom->seq;
     	}        
         if ( $stop_codon !~ /^(?:TAG|TAA|TGA)$/i ) {
-			INFO "no stop codon ($stop_codon) on $strand in ".$gene->product;
+			DEBUG "No stop codon ($stop_codon) on $strand in ".$gene->product;
 			$cds_ranges[-1]->[1] = '>' . $cds_ranges[-1]->[1];
 		}
 		else {
-			INFO "stop codon $stop_codon on $strand in ".$gene->product;
+			DEBUG "Stop codon $stop_codon on $strand in ".$gene->product;
 		}
     }
     else {
 		$mrna_ranges[-1]->[1] = $three_prime_UTR[-1]->[1];
-		INFO "found 3' UTR";
+		DEBUG "Found 3' UTR";
     }
 }
 
@@ -368,22 +368,22 @@ sub read_gene_line {
 		if ( my $fixed = $map{ $args->{'product'} } ) {
 			if ( ref $fixed and ref $fixed eq 'ARRAY' ) {
 				$fixed = pop(@{$fixed});			
-				WARN "multiple mappings for the same product, will use last seen: '"
+				WARN "Multiple mappings for the same product, will use last seen: '"
 				. $args->{'product'}."' => '".$fixed."'";
 			}
-			INFO "replacing '".$args->{'product'}."' with '$fixed' from '$file'";
+			INFO "Replacing '".$args->{'product'}."' with '$fixed' from '$file'";
 			$args->{'product'} = $fixed; 
 		}
 	}
 	
 	# check to see if we should delete uninformative gene symbols
 	if ( $args->{'gene'} and ( $args->{'gene'} eq 'hypothetical protein' ) ) {
-		WARN "gene symbol was set to 'hypothetical protein', deleting...";
+		WARN "Gene symbol was set to 'hypothetical protein', deleting...";
 		delete $args->{'gene'};
 	}
 	if ( $args->{'gene'} and ( $args->{'product'} eq 'hypothetical protein' ) ) {
 		my $sym = $args->{'gene'};
-		WARN "product was 'hypothetical protein', move gene name '$sym' to note";
+		WARN "Product was 'hypothetical protein', moving gene name '$sym' to note";
 		delete $args->{'gene'};	
 		if ( not defined $args->{'note'} ) {	
 			$args->{'note'} = $sym;
@@ -427,7 +427,7 @@ sub mask_seq {
 			my $index = $start - 1;
 			my $length = $stop - $index;
 			substr $raw, $index, $length, ( 'N' x $length );
-			WARN "masked ${id}:${start}-${stop}";
+			WARN "Masked ${id}:${start}-${stop}";
 		}		
 	}
 	$seq->seq( \$raw );
@@ -449,7 +449,7 @@ sub process {
         for my $key ( keys %masks ) {
             $masks{$key} = [ $masks{$key} ] if not ref $masks{$key};
         }
-        INFO "read masks for ".scalar(keys(%masks))." sequences";
+        INFO "Read masks for ".scalar(keys(%masks))." sequences";
     }
     
     # open the fasta file handle
@@ -477,14 +477,14 @@ sub process {
                 
         # compute offset at beginning, if any. e.g. if NNCGTNN, $offset is 2
         if ( $offset = get_non_missing_index($seq) ) {
-            INFO "leading ${offset}bp gap in $chr, will strip this and apply offset";
+            INFO "Leading ${offset}bp gap in $chr, will strip this and apply offset";
         }
         
         # check what we have left, here if NNCGTNN, $lnmi == 4
         my $last_non_missing_index = get_non_missing_index($seq,'reverse');
 		$length -= ( $length - 1 - $last_non_missing_index ) + $offset;
 		if ( $length < $config->minlength ) {
-			WARN "remaining seq $chr is too short ($length bp), skipping";
+			WARN "Remaining seq $chr is too short ($length bp), skipping";
 			$seq_counter--;
 			next SEQ;
 		}
@@ -542,12 +542,36 @@ sub prepare {
 	my $type_idx = 2;
 	my @queue;
 	my %handles;
+	
+	# check the configuration
+	my $quit;
+	if ( not $gff3file ) {
+		ERROR "No GFF3 file provided.";
+		$quit = 1;
+	}
+	elsif ( not -e $gff3file ) {
+		ERROR "No GFF3 file at location '$gff3file'";
+		$quit = 1;
+	}
+	if ( not $gff3dir ) {
+		ERROR "No GFF3 directory provided.";
+		$quit = 1;	
+	}
+	elsif ( not -d $gff3dir ) {
+		ERROR "No GFF3 directory at location '$gff3dir'";
+		$quit = 1;	
+	}
+	if ( $quit ) {
+		ERROR "Quitting. Try 'wgs2ncbi help' for more info.";
+		exit(1);
+	}
 
 	# open file handle
-	INFO "going to pre-process annotations in $gff3file";
+	INFO "Going to pre-process annotations in $gff3file";
 	open my $fh, '<', $gff3file or die;
 	
 	# iterate over lines
+	my $line = 0;
 	LINE: while(<$fh>) {
 		next LINE if /^#/;
 		my @line = split /\t/, $_;
@@ -570,7 +594,13 @@ sub prepare {
 		}
 		my $fh = $handles{$chr};
 		print $fh $_;
+		
+		# log line #
+		if ( not ++$line % 10000 ) {
+			INFO "Processed line $line";
+		}
 	}
+	INFO "Done. Files written to $gff3dir";
 }
 
 sub compress {
