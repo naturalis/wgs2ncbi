@@ -72,27 +72,28 @@ sub _array {
 }
 
 my %fields = (
-	'prefix'    => \&_string,
-	'template'  => \&_file,
-	'info'      => \&_file,
-	'products'  => \&_file,
-	'masks'     => \&_file,
-	'authority' => \&_string,
-	'datadir'   => \&_dir,
-	'datafile'  => \&_file,
-	'gff3dir'   => \&_dir,
-	'gff3file'  => \&_file,
-	'source'    => \&_string,
-	'chunksize' => \&_int,
-	'verbosity' => \&_int,
-	'minlength' => \&_int,
-	'limit'     => \&_int,
-	'minintron' => \&_int,
-	'outdir'    => \&_dir,
-	'discrep'   => \&_string,
-	'feature'   => \&_array,
-	'tbl2asn'   => \&_string,
-	'archive'   => \&_string,
+	'prefix'     => \&_string,
+	'template'   => \&_file,
+	'info'       => \&_file,
+	'products'   => \&_file,
+	'masks'      => \&_file,
+	'authority'  => \&_string,
+	'datadir'    => \&_dir,
+	'datafile'   => \&_file,
+	'gff3dir'    => \&_dir,
+	'gff3file'   => \&_file,
+	'source'     => \&_string,
+	'chunksize'  => \&_int,
+	'verbosity'  => \&_int,
+	'complexity' => \&_int,
+	'minlength'  => \&_int,
+	'limit'      => \&_int,
+	'minintron'  => \&_int,
+	'outdir'     => \&_dir,
+	'discrep'    => \&_string,
+	'feature'    => \&_array,
+	'tbl2asn'    => \&_string,
+	'archive'    => \&_string,
 );
 
 sub verbosity {
@@ -103,10 +104,18 @@ sub verbosity {
 	return $Bio::WGS2NCBI::Logger::Verbosity;
 }
 
+sub complexity {
+	my ( $self, $c ) = @_;
+	if ( defined $c ) {
+		$Bio::WGS2NCBI::Logger::Complexity = $c;
+	}
+	return $Bio::WGS2NCBI::Logger::Complexity;
+}
+
 {
 	no strict 'refs';
 	for my $key ( keys %fields ) {
-		next if $key eq 'verbosity';
+		next if $key eq 'verbosity' or $key eq 'complexity';
 		my $type = $fields{$key}->();
 		if ( $type =~ /\@/ ) {
 			*$key = sub {
@@ -136,21 +145,30 @@ sub new {
 		return $SINGLETON;
 	}
 	else {
-		$SINGLETON = {};
+		$SINGLETON = { '_configured' => 0 };
 		bless $SINGLETON, $class;
 	
 		# the location of a config ini file like wgs2ncbi.ini can be defined in an
 		# environment variable called WGS2NCBI. This file will be read first.
-		$SINGLETON->_selfconfig($ENV{'WGS2NCBI'}) if $ENV{'WGS2NCBI'};
+		if ( $ENV{'WGS2NCBI'} and -e $ENV{'WGS2NCBI'} ) {			
+			$SINGLETON->_selfconfig($ENV{'WGS2NCBI'});
+			INFO 'Read configuration INI file from $WGS2NCBI=' . $ENV{'WGS2NCBI'};
+		}
+		else {
+			if ( not @ARGV ) {
+				WARN 'No configuration from $WGS2NCBI and no command line arguments';
+			}
+		}
 		
 		# the location of a config ini file can also be provided on the command line
 		# using the -conf argument. Whether this overrides other command line arguments
 		# or vice versa depends on the order in which the command line arguments are
 		# given, as they are processed from left to right.
+		my ( $verbosity, $config_ini ) = $Bio::WGS2NCBI::Logger::Verbosity;
 		my %options = (
-			'conf=s'      => sub { $SINGLETON->_selfconfig(pop) },
-			'verbosity=i' => sub { $SINGLETON->verbosity(pop) },
-			'help|?'      => sub { Bio::WGS2NCBI->help }
+			'conf=s'   => \$config_ini,
+			'verbose+' => \$verbosity,
+			'help|?'   => sub { Bio::WGS2NCBI->help }
 		);
 		
 		# make the other command line arguments in Getopt::Long style
@@ -164,6 +182,30 @@ sub new {
 		
 		# process command line arguments	
 		GetOptions(%options);
+		
+		# process any config file provided on the command line
+		if ( $config_ini and -e $config_ini ) {
+			$SINGLETON->_selfconfig($config_ini);
+			INFO 'Read configuration INI file from -conf=' . $config_ini;
+		}
+		else {
+			if ( not $SINGLETON->{'_configured'} ) {
+				WARN 'No configuration INI file provided as -conf=<config file>';
+			}
+		}
+		
+		# process any verbosity setting provided on the command line
+		if ( $verbosity != $Bio::WGS2NCBI::Logger::Verbosity ) {
+			$SINGLETON->verbosity($verbosity);
+		}
+		
+		# check if we are configured
+		if ( not $SINGLETON->{'_configured'} ) {
+			ERROR 'No configuration info provided anywhere, quitting.';
+			ERROR "Try 'wgs2ncbi help' for more info.";
+			exit(1);
+		}
+		
     	return bless $SINGLETON, $class;
     }
 }
@@ -175,6 +217,7 @@ sub _selfconfig {
 		my $sub = $fields{$key};
 		$sub->( $key, $config{$key}, $self );
 	}
+	$self->{'_configured'} = 1;
 }
 
 sub read_ini {
@@ -198,7 +241,7 @@ sub read_ini {
 				}
 			}
 			if ( /\[.*\]/ ) {
-				INFO "ini-style headings are ignored: $_";
+				DEBUG "ini-style headings are ignored: $_";
 			}
 		}
 	}
