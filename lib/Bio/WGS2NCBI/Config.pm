@@ -13,7 +13,8 @@ sub _file {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value or not -e $value ) {
-			die "argument -$key needs an existing file, not '$value'";
+			ERROR "argument -$key needs an existing file, not '$value'";
+			exit(1);
 		}
 		$self->$key( $value );
 	}
@@ -35,14 +36,15 @@ sub _dir {
 	my ( $key, $value, $self ) = @_;
 	if ( $key ) {
 		if ( not $value ) {
-			die "argument -$key needs a name for a directory, not '$value'";
+			ERROR "argument -$key needs a name for a directory, not '$value'";
+			exit(1);
 		}
 		elsif ( not -d $value ) {
 			INFO "will create directory $value";
 			make_path( $value );
 		}
 		else {
-			INFO "directory '$value' already exists, contents may be overwritten";
+			WARN "directory '$value' already exists, contents (if any) may be overwritten";
 		}
 		$self->$key( $value );
 	}
