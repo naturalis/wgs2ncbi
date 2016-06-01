@@ -45,7 +45,7 @@ sub _dir {
 			make_path( $value );
 		}
 		else {
-			WARN "Directory '$value' already exists, contents (if any) may be overwritten";
+			INFO "Directory '$value' already exists, contents (if any) may be overwritten";
 		}
 		$self->$key( $value );
 	}
@@ -128,6 +128,7 @@ sub complexity {
 				$self->{$key} = [] if not $self->{$key};
 				if ( @_ ) {										
 					push @{ $self->{$key} }, map { ref $_ eq 'ARRAY' ? @$_ : $_ } @_;
+					$self->{'_configured'}++;
 				}
 				return @{ $self->{$key} };
 			};		
@@ -137,6 +138,7 @@ sub complexity {
 				my $self = shift;
 				if ( @_ ) {
 					$self->{$key} = shift;
+					$self->{'_configured'}++;
 				}
 				return $self->{$key};
 			};
@@ -205,8 +207,8 @@ sub new {
 		}
 		
 		# check if we are configured
-		if ( not $SINGLETON->{'_configured'} ) {
-			ERROR 'No configuration info provided anywhere, quitting.';
+		if ( not $SINGLETON->{'_configured'} or $SINGLETON->{'_configured'} < (scalar(keys(%fields))-2) ) {
+			ERROR 'No sufficient configuration info provided anywhere, quitting.';
 			ERROR "Try 'wgs2ncbi help' for more info.";
 			exit(1);
 		}
@@ -221,8 +223,8 @@ sub _selfconfig {
 	for my $key ( keys %config ) {
 		my $sub = $fields{$key};
 		$sub->( $key, $config{$key}, $self );
-	}
-	$self->{'_configured'} = 1;
+		$self->{'_configured'}++;
+	}	
 }
 
 sub read_ini {
