@@ -14,7 +14,7 @@ ok( $config->template eq 'share/template.sbt', 'template' );
 ok( $config->info eq 'share/info.ini', 'info' );
 ok( $config->products eq 'share/products.ini', 'products' );
 ok( $config->masks eq 'share/adaptors.ini', 'masks' );
-ok( $config->authority eq 'gnl|NaturalisBC', 'authority' );
+ok( $config->authority eq 'gnl|NaturalisBC|', 'authority' );
 ok( $config->datadir eq 'share/tblfasta', 'datadir' );
 ok( $config->datafile eq 'share/king_cobra_scaffolds_spring_2011-cleaned.fasta', 'datafile' );
 ok( $config->gff3dir eq 'share/gff3', 'gff3dir' );

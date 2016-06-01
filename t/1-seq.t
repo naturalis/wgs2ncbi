@@ -6,6 +6,10 @@ use Bio::WGS2NCBI;
 use Bio::WGS2NCBI::Seq;
 use Bio::WGS2NCBI::Logger;
 
+# this is just so that intentional warnings 
+# are hidden from users running the unit tests
+$Bio::WGS2NCBI::Logger::Verbosity = 0;
+
 my $raw = 'AGCTCGATCG';
 my $seq = Bio::WGS2NCBI::Seq->new(
 	'-id'   => 'foo',
@@ -29,6 +33,5 @@ my $orig = Bio::WGS2NCBI::Seq->new(
 	'-desc' => 'bar',
 );
 
-WARN "*** warning is expected here ***";
 Bio::WGS2NCBI::mask_seq( $orig, '2..3' );
 ok( $orig->seq eq 'ANNTCGATCG' );
