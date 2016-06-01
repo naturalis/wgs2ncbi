@@ -12,7 +12,7 @@ use Bio::WGS2NCBI::FeatureSet;
 use File::Path 'make_path';
 
 # version number for the whole release is defined here
-our $VERSION = 1.0;
+our $VERSION = 'v0.1.0';
 
 # export the run function
 require Exporter;
@@ -28,6 +28,14 @@ my $end_idx    = 4;
 my $strand_idx = 6;
 my $codon_idx  = 7;
 my $meta_idx   = 8;
+
+=pod
+
+=head1 NAME
+
+Bio::WGS2NCBI - library to assist in submitting whole genome sequencing projects to NCBI
+
+=cut
 
 sub help {
 	pod2usage({-verbose => 2});
