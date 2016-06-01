@@ -10,17 +10,30 @@ wgs2ncbi - prepares whole genome sequencing projects for submission to NCBI
 
  Usage: wgs2ncbi [action] -conf [config file]
 
+Typically, you will run the following sequence of commands:
+
+ $ wgs2ncbi prepare -conf config.ini
+ $ wgs2ncbi process -conf config.ini
+ $ wgs2ncbi convert -conf config.ini
+ $ wgs2ncbi compress -conf config.ini
+
+The C<prepare> and C<compress> steps will be one time operations, but C<process> and
+C<convert> may be iterative, depending on the feedback you will get from NCBI (e.g. 
+about invalid product names or unmasked adaptor sequences).
+
 =head1 DESCRIPTION
 
-C<wgs2ncbi> is a utility that provides the functionality for preparing submissions of 
-annotated, whole genomes to NCBI. It does this by performing a number of actions. Each
-of these actions need to be invoked as a subcommand, which will then run for a certain 
-time. Here follows a brief description of the actions:
+C<wgs2ncbi> is a script that helps users prepare submissions of annotated, whole genomes 
+to NCBI. It does this by performing a number of actions that need to be taken in sequence. 
+Each of these actions need to be invoked as a subcommand (i.e. C<wgs2ncbi [action]>), 
+which will run for a certain amount of time. The actions are documented more fully in the 
+module of functions that this script is based on. Links to the respective, expanded 
+documentation sections are given below. Here follows a brief description of the actions:
 
 =head2 C<prepare>
 
 Prepares the rest of the procedure by expanding the single genome annotation file into 
-separate files, one for each contig.
+separate files, one for each contig. See L<Bio::WGS2NCBI/prepare>.
 
 =head2 C<process>
 
@@ -36,15 +49,24 @@ Packs the ASN.1 files into a .tar.gz archive for upload to NCBI.
 
 =cut
 
-
+# in case people don't want to install, they can just add this script 
+# to their PATH and the rest should be picked up automatically.
 BEGIN {
 	use FindBin '$Bin';
 	use lib "$Bin/../lib";
 }
+
 use Bio::WGS2NCBI;
+
+# shift the subcommand from @ARGV so that the remainder can be parsed
+# by the config object using Getopt::Long.
 my $action = shift;
+
+# despatch to the subcommand
 if ( $action and Bio::WGS2NCBI->can($action) ) {
     Bio::WGS2NCBI->$action;
     exit 0;
 }
+
+# if no subcommand was given, display help docs and quit
 Bio::WGS2NCBI->help;
