@@ -444,10 +444,17 @@ sub compress {
 	$tar->write( $archive, COMPRESS_GZIP );
 }
 
+=head1 help
+
+Displays module documentation (which you are reading now).
+
+=cut
+
 sub help {
 	pod2usage({-verbose => 2});
 }
 
+# XXX move to Bio::WGS2NCBI::Seq
 sub read_fasta {
     my ( $fh, $pos ) = @_;
     
@@ -483,6 +490,7 @@ sub read_fasta {
     );
 }
 
+# XXX move to Bio::WGS2NCBI::Seq
 sub write_fasta {
     my ( $seq, $fh ) = @_;
     
@@ -501,6 +509,7 @@ sub write_fasta {
     DEBUG "wrote sequence ".$seq->id;
 }
 
+# XXX move to Bio::WGS2NCBI::FeatureSet
 sub read_features {
     my ( $fh, $counter, $config, $seq, $offset, $last_non_missing_index ) = @_;
     INFO "Reading features for ".$seq->id;
@@ -615,6 +624,7 @@ sub read_features {
     return $set;
 }
 
+# XXX move to Bio::WGS2NCBI::GeneFeature
 sub annotate_short_introns {
     my ( $gene, $cds, $mrna, $set, $config ) = @_;
     DEBUG "Checking for short introns in ".$gene->product;     
@@ -637,6 +647,7 @@ sub annotate_short_introns {
 	return 1;
 }
 
+# XXX move to Bio::WGS2NCBI::GeneFeature
 sub annotate_partials {
     my ( $gene, $cds, $mrna, $seq ) = @_;
     DEBUG "Finalizing gene ".$gene->product; 
@@ -694,6 +705,7 @@ sub annotate_partials {
     }
 }
 
+# is called from read_features, so should also be moved to Bio::WGS2NCBI::FeatureSet
 sub read_gene_line {
     my ( $args, @line ) = @_;
     $args->{'product'} = 'hypothetical protein';
@@ -812,11 +824,13 @@ sub read_gene_line {
 	}
 }
 
+# XXX move to Bio::WGS2NCBI::FeatureSet
 sub write_features {
     my ( $features, $fh ) = @_;
     print $fh $features->to_string;
 }
 
+# XXX move to Bio::WGS2NCBI::Seq
 sub get_non_missing_index {
 	my ( $seq, $reverse ) = @_;
 	
@@ -832,6 +846,7 @@ sub get_non_missing_index {
 	}
 }
 
+# XXX move to Bio::WGS2NCBI::Seq
 sub mask_seq {
 	my ( $seq, @masks ) = @_;
 	my $raw = $seq->seq;
