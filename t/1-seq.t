@@ -33,5 +33,23 @@ my $orig = Bio::WGS2NCBI::Seq->new(
 	'-desc' => 'bar',
 );
 
-Bio::WGS2NCBI::mask_seq( $orig, '2..3' );
+$orig->mask( '2..3' );
 ok( $orig->seq eq 'ANNTCGATCG' );
+
+# test writing, when executed outside 'make test' this will show in the console
+ok( $orig->write_fasta(\*STDOUT) );
+
+# test reading
+my $fasta = <<HERE;
+>foo
+AGCATGACATAGCGA
+HERE
+open my $fh, '<', \$fasta;
+my $dataseq;
+my $pos;
+ok( ( $pos, $dataseq ) = Bio::WGS2NCBI::Seq->read_fasta( $fh ) );
+ok( $dataseq->seq eq 'AGCATGACATAGCGA' );
+ok( $pos == length($fasta) );
+ok( $dataseq->get_non_missing_index == 0 );
+ok( $dataseq->get_non_missing_index(1) == ( length($dataseq->seq) - 1 ) );
+
