@@ -32,7 +32,8 @@ file with the features, we need to do the following:
    [create the submission template](#creating-the-submission-template)
 2. [explode the GFF3 file](#splitting-the-gff3-file) into smaller ones, one for each 
    scaffold: `wgs2ncbi prepare -conf <config.ini>`
-3. split the FASTA file into scaffolds and feature tables: `wgs2ncbi process -conf <config.ini>`
+3. [split the FASTA file](#splitting-the-fasta-file) into scaffolds and feature tables: 
+   `wgs2ncbi process -conf <config.ini>`
 4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert -conf <config.ini>`
 5. verify output from tbl2asn
 6. upload .sqn files: `wgs2ncbi compress -conf <config.ini>`
