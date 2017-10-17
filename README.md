@@ -128,3 +128,11 @@ Tip: Note that NCBI **does** accept .tar.gz archives, which means you can prepar
 
     wgs2ncbi compress -conf <config.ini>
 
+Once you upload the archive, you will get a verdict from whoever is handling this submission
+at NCBI. It is possible that there will be stretches of sequence in your submission that
+NCBI will consider contaminants (based on a pipeline they run). One way to deal with those
+is to blank them out of the data, using a [configuration file](share/adaptors.ini) that
+specifies the coordinates of stretches to NNN. In addition, NCBI might have additional
+issues with certain protein names, so you may have to update the 
+[names mapping file](share/products.ini). Then rerun the convert step, rebuild the archive,
+and do another upload.
