@@ -62,8 +62,8 @@ Creating the submission template
 
 GenBank provides a web form that produces the sbt file. This form needs to be filled out
 with the correct metadata, i.e. all the authors of the publication, the publication title,
-the organism, etc. The included template.sbt file contains and example. [The form to create
-such files is here](http://www.ncbi.nlm.nih.gov/WebSub/template.cgi)
+the organism, etc. The included [template.sbt](template.sbt) file contains an example. 
+[The form to create such files is here](http://www.ncbi.nlm.nih.gov/WebSub/template.cgi)
 
 Splitting the GFF3 file
 -----------------------
@@ -88,18 +88,19 @@ Splitting the FASTA file
 ------------------------
 
 Once the annotations are exploded, we then need to take the big FASTA file and chop it 
-up into multiple FASTA files and tbl files, which need to be written into an output 
-folder. The default behavior is to write each scaffold (and its features) to a separate 
-FASTA file. This, however, may result in very many files. Therefore, you can provide a 
-parameter to indicate that sequences and feature tables are lumped together with up to 
-[`chunksize`](share/wgs2ncbi.ini#L57) sequences per file, where `chunksize` may not 
-exceed 10000 according to NCBI guidelines. The default for this is 5000.
+up into multiple FASTA files and [tbl](https://www.ncbi.nlm.nih.gov/projects/Sequin/table.html) 
+files, which need to be written into an output folder. The naive behavior is to write 
+each scaffold (and its features) to a separate FASTA file. This, however, may result in 
+very many files. Therefore, you can provide a parameter to indicate that sequences and 
+feature tables are lumped together with up to [`chunksize`](share/wgs2ncbi.ini#L57) 
+sequences per file, where `chunksize` may not exceed 10000 according to NCBI guidelines. 
+The default for this is 5000.
 
     wgs2ncbi process -conf <config.ini>
 
 A word of caution: this script produces in some cases tens of thousands of files, each of
-which have a name that matches the first word in the FASTA definition line (so this should
-be a unique identifier!) and the `*.fsa` extension. Generally speaking you want to avoid 
+which have a name that matches the first word in the FASTA definition line (**so this should
+be a unique identifier!**) and the `*.fsa` extension. Generally speaking you want to avoid 
 having to look inside the folder that contains these files because graphical interfaces 
 (like the windows explorer or the mac finder) have a hard time dealing with this. If you 
 use the `chunksize` parameter (which is the default behaviour) the numberof files will be 
