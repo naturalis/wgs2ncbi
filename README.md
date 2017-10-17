@@ -28,7 +28,8 @@ tbl2asn.
 Since our starting material is one giant FASTA file that contains the scaffolds and a GFF 
 file with the features, we need to do the following:
 
-1. use the GenBank web form to create the submission template
+1. use the GenBank web form to 
+   [create the submission template](#creating-the-submission-template)
 2. explode the GFF3 file into smaller ones, one for each scaffold: `wgs2ncbi prepare -conf <config.ini>`
 3. split the FASTA file into scaffolds and feature tables: `wgs2ncbi process -conf <config.ini>`
 4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert -conf <config.ini>`
