@@ -64,8 +64,10 @@ The genome annotation file (GFF3 format) may have the following issues that may 
 quick lookups of features for a given scaffold:
 
 * very big, so scanning it takes a long time
-* include annotation sources we don't trust (e.g. multiple annotation pipelines)
-* include features we don't care for (e.g. anything not gene/CDS/3' UTR/5' UTR)
+* include annotation [sources](share/wgs2ncbi.ini#L48) we don't trust (e.g. multiple 
+  annotation pipelines)
+* include [features](share/wgs2ncbi.ini#L51-L54) we don't care for (e.g. anything not 
+  gene/CDS/3' UTR/5' UTR)
 * include FASTA sequence data
 
 To remedy this we "explode" the GFF3 file into separate files, one for each scaffold. This
