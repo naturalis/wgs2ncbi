@@ -82,8 +82,8 @@ up into multiple FASTA files and tbl files, which need to be written into an out
 folder. The default behavior is to write each scaffold (and its features) to a separate 
 FASTA file. This, however, may result in very many files. Optionally you can provide a 
 parameter to indicate that sequences and feature tables are lumped together with up to 
-$CHUNKSIZE sequences per file, where $CHUNKSIZE may not exceed 10000 according to NCBI 
-guidelines.
+`[chunksize](share/wgs2ncbi.ini#L57)` sequences per file, where `chunksize` may not 
+exceed 10000 according to NCBI guidelines.
 
     wgs2ncbi process -conf <config.ini>
 
