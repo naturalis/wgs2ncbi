@@ -34,9 +34,14 @@ file with the features, we need to do the following:
    scaffold: `wgs2ncbi prepare -conf <config.ini>`
 3. [split the FASTA file](#splitting-the-fasta-file) into scaffolds and feature tables: 
    `wgs2ncbi process -conf <config.ini>`
-4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert -conf <config.ini>`
-5. verify output from tbl2asn
-6. upload .sqn files: `wgs2ncbi compress -conf <config.ini>`
+4. [run tbl2asn](#running-tbl2asn) on the folder with the intermediate files: 
+   `wgs2ncbi convert -conf <config.ini>`
+5. verify output from [`tbl2asn`](#running-tbl2asn), make updates to the 
+   [protein names](share/products.ini). If need be, keep re-running step 4 and updating 
+   the names file until there are no warnings in the descrepancy report.
+6. compress .sqn files: `wgs2ncbi compress -conf <config.ini>`, and upload to NCBI. They
+   will perform a contaminants screen. If there are suspicious sequences (e.g. untrimmed
+   adaptors), mask these using the [adaptors](share/adaptors.ini) file.
 
 In other words, the pipeline mostly consists of invocations of the [wgs2ncbi](script/wgs2ncbi)
 script. Each invocation is followed by a verb (prepare, process, convert, compress), followed
@@ -93,12 +98,12 @@ exceed 10000 according to NCBI guidelines.
     wgs2ncbi process -conf <config.ini>
 
 A word of caution: this script produces in some cases tens of thousands of files, each of
-which have a name that matches the first word in the FASTA definition line and the *.fsa 
+which have a name that matches the first word in the FASTA definition line and the `*.fsa` 
 extension. Generally speaking you want to avoid having to look inside the folder that 
 contains these files because graphical interfaces (like the windows explorer or the mac 
-finder) have a hard time dealing with this. If you use the $CHUNKSIZE parameter the number
-of files will be a lot lower, and each will have a name matching combined_xxx-yyy.(fsa|tbl),
-where xxx and yyy are the start and end rank of the sequences in the file.
+finder) have a hard time dealing with this. If you use the `chunksize` parameter the number
+of files will be a lot lower, and each will have a name matching `combined_xxx-yyy.(fsa|tbl)`,
+where `xxx` and `yyy` are the start and end rank of the sequences in the file.
 
 Running tbl2asn
 ---------------
@@ -109,6 +114,12 @@ A typical invocation using the wrapper goes like this:
 
     wg2ncbi convert -conf <config.ini>
 
+In other words, this command will run the [`tbl2asn`](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
+command for you (provided you have made sure [it can be found](share/wgs2ncbi.ini#L71)) with 
+the right command line arguments. Pay attention to the output as this is running, and 
+inspect the [discrepancy report](share/wgs2ncbi.ini#L39). This will tell you which protein
+names are discouraged by NCBI. For these you need to create a [mapping](share/products.ini).
+
 Uploading to NCBI
 -----------------
 
@@ -116,3 +127,4 @@ Tip: Note that NCBI **does** accept .tar.gz archives, which means you can prepar
 [upload](share/wgs2ncbi.ini#L42) as follows:
 
     wgs2ncbi compress -conf <config.ini>
+
