@@ -90,35 +90,39 @@ Splitting the FASTA file
 Once the annotations are exploded, we then need to take the big FASTA file and chop it 
 up into multiple FASTA files and tbl files, which need to be written into an output 
 folder. The default behavior is to write each scaffold (and its features) to a separate 
-FASTA file. This, however, may result in very many files. Optionally you can provide a 
+FASTA file. This, however, may result in very many files. Therefore, you can provide a 
 parameter to indicate that sequences and feature tables are lumped together with up to 
 [`chunksize`](share/wgs2ncbi.ini#L57) sequences per file, where `chunksize` may not 
-exceed 10000 according to NCBI guidelines.
+exceed 10000 according to NCBI guidelines. The default for this is 5000.
 
     wgs2ncbi process -conf <config.ini>
 
 A word of caution: this script produces in some cases tens of thousands of files, each of
-which have a name that matches the first word in the FASTA definition line and the `*.fsa` 
-extension. Generally speaking you want to avoid having to look inside the folder that 
-contains these files because graphical interfaces (like the windows explorer or the mac 
-finder) have a hard time dealing with this. If you use the `chunksize` parameter the number
-of files will be a lot lower, and each will have a name matching `combined_xxx-yyy.(fsa|tbl)`,
-where `xxx` and `yyy` are the start and end rank of the sequences in the file.
+which have a name that matches the first word in the FASTA definition line (so this should
+be a unique identifier!) and the `*.fsa` extension. Generally speaking you want to avoid 
+having to look inside the folder that contains these files because graphical interfaces 
+(like the windows explorer or the mac finder) have a hard time dealing with this. If you 
+use the `chunksize` parameter (which is the default behaviour) the numberof files will be 
+a lot lower, and each will have a name matching `combined_xxx-yyy.(fsa|tbl)`, where `xxx` 
+and `yyy` are the start and end rank of the sequences in the file.
 
 Running tbl2asn
 ---------------
 
-Once the submission template, the FASTA files and the feature tables are produced, the
+Once the submission template, the FASTA files, and the feature tables are produced, the
 tbl2asn program provided by NCBI needs to be run on the folder that contains these files.
 A typical invocation using the wrapper goes like this:
 
     wg2ncbi convert -conf <config.ini>
 
 In other words, this command will run the [`tbl2asn`](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
-command for you (provided you have made sure [it can be found](share/wgs2ncbi.ini#L71)) with 
-the right command line arguments. Pay attention to the output as this is running, and 
-inspect the [discrepancy report](share/wgs2ncbi.ini#L39). This will tell you which protein
-names are discouraged by NCBI. For these you need to create a [mapping](share/products.ini).
+command for you with the right command line arguments (provided you have installed it on 
+your system and made sure [it can be found](share/wgs2ncbi.ini#L71)). Pay attention to the 
+output as this is running, and inspect the [discrepancy report](share/wgs2ncbi.ini#L39). 
+This will tell you which protein names are discouraged by NCBI. For these you need to create 
+a [mapping](share/products.ini). Note that this conversion step may consequently be an
+iterative process: if the descrepancy report raises issues about names you will need to 
+address and re-run the step.
 
 Uploading to NCBI
 -----------------
