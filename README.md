@@ -110,6 +110,6 @@ Uploading to NCBI
 -----------------
 
 Tip: Note that NCBI **does** accept .tar.gz archives, which means you can prepare your
-upload as follows:
+[upload](share/wgs2ncbi.ini#L42) as follows:
 
     wgs2ncbi compress -conf <config.ini>
