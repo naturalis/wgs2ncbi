@@ -29,13 +29,25 @@ Since our starting material is one giant FASTA file that contains the scaffolds 
 file with the features, we need to do the following:
 
 1. use the GenBank web form to create the submission template
-2. explode the GFF3 file into smaller ones, one for each scaffold: `wgs2ncbi prepare`
-3. split the FASTA file into scaffolds and feature tables: `wgs2ncbi process`
-4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert`
+2. explode the GFF3 file into smaller ones, one for each scaffold: `wgs2ncbi prepare -conf <config.ini>`
+3. split the FASTA file into scaffolds and feature tables: `wgs2ncbi process -conf <config.ini>`
+4. run tbl2asn on the folder with the intermediate files: `wgs2ncbi convert -conf <config.ini>`
 5. verify output from tbl2asn
-6. upload .sqn files: `wgs2ncbi compress`
+6. upload .sqn files: `wgs2ncbi compress -conf <config.ini>`
 
-Here now follow more details about each of these steps:
+In other words, the pipeline mostly consists of invocations of the [wgs2ncbi](script/wgs2ncbi)
+script. Each invocation is followed by a verb (prepare, process, convert, compress), followed
+by a set of arguments that point to a [configuration file](share/wgs2ncbi.ini), which in
+turn points to other files. By perusing the examples of these configuration files you 
+should get a pretty good idea how to prepare your own versions of these files. To be able to
+run the script, you will need to install it locally. One way to do that is as follows:
+
+1. download the [repository](https://github.com/naturalis/wgs2ncbi/archive/master.zip)
+2. unzip it, open a terminal window, and move into the top-level folder
+3. `perl Makefile.PL`
+4. `sudo make install`
+
+Here now follow more details about each of the steps of the pipeline:
 
 Creating the submission template
 --------------------------------
