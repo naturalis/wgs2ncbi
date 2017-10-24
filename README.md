@@ -119,11 +119,28 @@ A typical invocation using the wrapper goes like this:
 In other words, this command will run the [`tbl2asn`](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
 command for you with the right command line arguments (provided you have installed it on 
 your system and made sure [it can be found](share/wgs2ncbi.ini#L71)). Pay attention to the 
-output as this is running, and inspect the [discrepancy report](share/wgs2ncbi.ini#L39). 
-This will tell you which protein names are discouraged by NCBI. For these you need to create 
+output as this is running, and inspect the [discrepancy report](share/wgs2ncbi.ini#L39).
+
+> The Discrepancy Report is an evaluation of a single or multiple ASN.1 files, looking for 
+> suspicious annotation or annotation discrepancies that NCBI staff has noticed commonly occur 
+> in genome submissions, both complete and incomplete (WGS). A few of the problems that this 
+> function was written to find include inconsistent locus_tag prefixes, missing protein_id's, 
+> missing gene features, and suspect product names. The function is available in specially 
+> configured Sequin, as an argument for tbl2asn, or with the command-line program asndisc.
+>
+> If you have questions about the Discrepancy Report, please contact us by email at 
+> genomes@ncbi.nlm.nih.gov prior to sending us your submission.
+Source: https://www.ncbi.nlm.nih.gov/genbank/asndisc/
+
+The report contains numerous informational messages, warnings, and fatal errors. The latter
+have to be resolved before your submission is accepted by NCBI. Most (ideally, all) of the 
+fatal errors have to do with bad product names. As you scroll through the discrepancy report,
+there will be categories of problematic product names (e.g. where a _product_ is called a 
+'gene', which would be incoherent). Below each category, all the instances of this problem
+are listed. Each instance will show the problematic description.For these you need to create 
 a [mapping](share/products.ini). Note that this conversion step may consequently be an
 iterative process: if the descrepancy report raises issues about names you will need to 
-address and re-run the step.
+address and re-run the step. 
 
 Uploading to NCBI
 -----------------
