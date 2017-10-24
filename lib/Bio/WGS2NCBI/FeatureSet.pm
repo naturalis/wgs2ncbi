@@ -1,5 +1,18 @@
 package Bio::WGS2NCBI::FeatureSet;
 use Bio::WGS2NCBI::Logger;
+use strict;
+use warnings;
+use URI::Escape;
+
+# GFF3 column numbers
+my $chr_idx    = 0;
+my $source_idx = 1;
+my $type_idx   = 2;
+my $start_idx  = 3;
+my $end_idx    = 4;
+my $strand_idx = 6;
+my $codon_idx  = 7;
+my $meta_idx   = 8;
 
 =head1 NAME
 
