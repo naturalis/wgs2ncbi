@@ -7,13 +7,39 @@ use base 'Bio::WGS2NCBI::StrandedFeature';
 sub new {
     my $class = shift;
     my %args = @_;
-    die "need locus_tag" if not $args{'locus_tag'};
+    DEBUG "need locus_tag" if not $args{'locus_tag'};
     $class->SUPER::new( 'five_prime_UTR' => [], 'three_prime_UTR' => [], %args );
 }
 
-sub db_xref { shift->{'db_xref'} }
+sub db_xref { 
+	my $self = shift;
+	$self->{'db_xref'} = shift if @_;
+	return $self->{'db_xref'};
+}
 
-sub gene { shift->{'gene'} }
+sub gene { 
+	my $self = shift;
+	$self->{'gene'} = shift if @_;
+	return $self->{'gene'};
+}
+
+sub product {
+	my $self = shift;	
+	$self->{'product'} = shift if @_;
+	return $self->{'product'};
+}
+
+sub locus_tag { 
+	my $self = shift;
+	$self->{'locus_tag'} = shift if @_; 
+	return $self->{'locus_tag'};	
+}
+
+sub note {
+	my $self = shift;
+	$self->{'note'} = shift if @_;
+	return $self->{'note'};
+}
 
 sub five_prime_UTR {
     my $self = shift;
@@ -27,19 +53,7 @@ sub three_prime_UTR {
     return @{ $self->{'three_prime_UTR'} };
 }
 
-sub product { shift->{'product'} }
-
-sub locus_tag { shift->{'locus_tag'} }
-
 sub qualifiers { qw(locus_tag gene note) }
-
-sub note {
-	my $self = shift;
-	if ( @_ ) {
-		$self->{'note'} = shift;
-	}
-	return $self->{'note'};
-}
 
 sub annotate_short_introns {
     my ( $gene, $cds, $mrna, $set, $config ) = @_;
@@ -52,7 +66,7 @@ sub annotate_short_introns {
 				if ( $intron_length <= $config->minintron ) {
 					$set->remove($cds,$mrna);
 					$gene->note('nonfunctional due to frameshift');
-					WARN "Found $intron_length nt intron in '".$gene->product."', marked pseudo-gene";
+					INFO "Found $intron_length nt intron in '".$gene->product."', marked pseudo-gene";
 					return 0;
 				}
 			}
@@ -63,7 +77,7 @@ sub annotate_short_introns {
 		$gene->note('');
     }
     else {
-    	WARN "No CDS for ".Dumper($gene);
+    	WARN "No CDS for ".$gene->{'type'}." ".$gene->locus_tag;
     }
 	return 1;
 }
@@ -126,7 +140,7 @@ sub annotate_partials {
 		}
     }
     else {
-    	WARN "No CDS for ".Dumper($gene);
+    	WARN "No CDS for ".$gene->{'type'}." ".$gene->locus_tag;
     }
 }
 
