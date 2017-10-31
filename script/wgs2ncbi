@@ -15,11 +15,13 @@ Typically, you will run the following sequence of commands:
  $ wgs2ncbi prepare -conf config.ini
  $ wgs2ncbi process -conf config.ini
  $ wgs2ncbi convert -conf config.ini
+ $ wgs2ncbi prune -conf config.ini
  $ wgs2ncbi compress -conf config.ini
 
-The C<prepare> and C<compress> steps will be one time operations, but C<process> and
-C<convert> may be iterative, depending on the feedback you will get from NCBI (e.g. 
-about invalid product names or unmasked adaptor sequences).
+The C<prepare> and C<compress> steps will be one time operations, but C<process>,
+C<convert> and C<prune> may be iterative, depending on the feedback you will get from 
+NCBI (e.g. about invalid product names, unmasked adaptor sequences, and other problematic
+regions).
 
 =head1 DESCRIPTION
 
@@ -42,6 +44,11 @@ Processes the genome by writing out feature tables and masking contig segments a
 =head2 C<convert>
 
 Converts the masked contigs and feature tables into ASN.1 using tbl2asn.
+
+=head2 C<prune>
+
+Based on a validation file from NCBI, makes pruned versions of feature tables that omit
+features within regions identified by NCBI.
 
 =head2 C<compress>
 
