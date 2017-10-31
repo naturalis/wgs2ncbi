@@ -87,6 +87,7 @@ my %fields = (
 	'datafile'   => \&_file,
 	'gff3dir'    => \&_dir,
 	'gff3file'   => \&_file,
+	'validation' => \&_file,
 	'source'     => \&_string,
 	'chunksize'  => \&_int,
 	'verbosity'  => \&_int,
@@ -118,10 +119,14 @@ sub complexity {
 }
 
 {
+	# populates the symbol table with a method to get (and 
+	# optionally set) the value for a field in %fields
 	no strict 'refs';
 	for my $key ( keys %fields ) {
 		next if $key eq 'verbosity' or $key eq 'complexity';
 		my $type = $fields{$key}->();
+		
+		# method for configuration fields that are arrays
 		if ( $type =~ /\@/ ) {
 			*$key = sub {
 				my $self = shift;
@@ -133,6 +138,8 @@ sub complexity {
 				return @{ $self->{$key} };
 			};		
 		}
+		
+		# method for configuration fields that are scalar
 		else {
 			*$key = sub {
 				my $self = shift;
