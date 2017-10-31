@@ -117,7 +117,7 @@ sub mask {
 			my $index  = $start - 1;
 			my $length = $stop - $index;
 			substr $raw, $index, $length, ( 'N' x $length );
-			WARN "Masked ${id}:${start}-${stop}";
+			INFO "Masked ${id}:${start}-${stop}";
 		}		
 	}
 	$seq->seq( \$raw );
