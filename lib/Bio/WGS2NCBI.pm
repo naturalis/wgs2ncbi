@@ -9,15 +9,16 @@ use Bio::WGS2NCBI::Logger;
 use Bio::WGS2NCBI::Config;
 use Bio::WGS2NCBI::Feature;
 use Bio::WGS2NCBI::FeatureSet;
+use Bio::WGS2NCBI::TableReader;
 use File::Path 'make_path';
 
 # version number for the whole release is defined here
-our $VERSION = 'v0.1.0';
+our $VERSION = 'v0.1.1';
 
 # export the run function
 require Exporter;
 use base 'Exporter';
-our @EXPORT = qw(process prepare compress convert);
+our @EXPORT = qw(process prepare compress convert prune);
 
 # GFF3 column numbers
 my $chr_idx    = 0;
@@ -397,6 +398,125 @@ sub convert {
 	my $command = "$TBL2ASN -p $INDIR -t $TMPL -M n -a r10k -l paired-ends -r $OUTDIR -Z $DISCREP";
 	INFO "going to execute command '$command'";
 	exec $command;
+}
+
+=head1 prune
+
+The C<prune> action reads a discrepancy file as supplied by NCBI, parses out errors that
+have locations in them, which are then pruned from the table files in $config->datadir.
+
+This requires the following configuration settings:
+
+=over
+
+=item C<datadir>
+
+The location of the dir where the (potentially 'chunked', see below) sequence files
+and feature tables were written by L<Bio::WGS2NCBI/process>.
+
+=item C<validation>
+
+The location where to read the validation report from NCBI.
+
+=item C<prefix>
+
+The ID prefix that was assigned to you by NCBI when you created your submission, something 
+like 'CR513_'
+
+=item C<authority>
+
+The naming authority prefix that you chose for your identifiers, something like 
+'gnl|aceprd|'
+
+The
+
+=back
+
+=cut
+
+sub prune {
+	my $config  = Bio::WGS2NCBI::Config->new;
+	my $datadir = $config->datadir;
+	my $discrep = $config->validation;
+	my $auth    = $config->authority; # gnl|aceprd|
+	my $prefix  = $config->prefix;    # CR513_
+	my %locations;
+	my %objects;
+	
+	# read locations from coordinates in report
+	open my $fh, '<', $discrep or die $!;
+	while(<$fh>) {
+	
+		# [(lcl|contig_3124:c<739-1821, 2000-2254)]
+		my $coord = qr/c?[<>]?\d+/;
+		my $seq = qr/[^:]+/;
+		if ( /lcl\|($seq):($coord-$coord)((?:, $coord-coord)*)/ ) {
+			my ( $seq, $first, $remainder ) = ( $1, $2, $3 );
+			$locations{$seq} = [] if not $locations{$seq};
+			push @{ $locations{$seq} }, [ split /-/, $first ];
+			INFO "Going to prune annotations on $seq:$first";
+			
+			for my $r ( split /, /, $remainder ) {
+				if ( $r =~ /($coord)-($coord)/ ) {
+					my ( $start, $stop ) = ( $1, $2 );
+					push @{ $locations{$seq} }, [ $start => $stop ];
+					INFO "Extending range to prune $start => $stop";
+				}
+			}
+		}
+		if ( / \Q$auth\E($prefix\d+)/ ) {
+			my $id = $1;
+			INFO "Going to prune annotations identified by $id";
+			$objects{$id}++;
+		}
+	}
+	
+	# start reading feature tables
+	opendir my $dh, $datadir or die $!;
+	while( my $entry = readdir $dh ) {
+		if ( $entry =~ /\.tbl$/ ) {
+		
+			# make pruned copy
+			INFO "Going to start writing to $datadir/$entry.pruned";
+			open my $fh, '>', "$datadir/$entry.pruned" or die $!;
+		
+			# instantiate reader and start scanning
+			INFO "Going to start reading $datadir/$entry";
+			my $read = Bio::WGS2NCBI::TableReader->new(  
+				'-file' => "$datadir/$entry",
+				'-cb'   => sub { print $fh ">Features @_\n" }
+			);
+			
+			# iterate over features, write out with sequence separators
+			my $seq = '';
+			FEAT: while( my $feat = $read->next_feature ) {
+				
+				# scan all the ranges
+				$seq = $read->seq;
+				if ( $locations{$seq} ) {
+					for my $loc ( @{ $locations{$seq} } ) {
+						if ( $feat->lies_within(@$loc) ) {
+							WARN "Pruning from location $seq:".$loc->[0].'-'.$loc->[1];
+							next FEAT;
+						}
+					}				
+				}
+				
+				# check object ids
+				if ( $feat->can('locus_tag') and $objects{$feat->locus_tag} ) {
+					WARN "Pruning $feat ".$feat->locus_tag;
+					next FEAT;
+				}
+				if ( $feat->can('protein_id') and $objects{$auth . $feat->protein_id} ) {
+					WARN "Pruning $feat ".$feat->protein_id;
+					next FEAT;
+				}
+				
+				# still here? then print the feature
+				print $fh $feat->to_string;
+			}
+		}	
+	}	
 }
 
 =head1 compress
