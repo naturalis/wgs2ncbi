@@ -29,6 +29,24 @@ include all qualifiers used in a L<Bio::WGS2NCBI::MrnaFeature>, as well as
 
 sub qualifiers { shift->SUPER::qualifiers, qw(note codon_start db_xref) }
 
+sub note { 
+	my $self = shift;
+	$self->{'note'} = shift if @_;
+	return $self->{'note'};
+}
+
+sub codon_start { 
+	my $self = shift;
+	$self->{'codon_start'} = shift if @_;
+	return $self->{'codon_start'};
+}
+
+sub db_xref { 
+	my $self = shift;
+	$self->{'db_xref'} = shift if @_;
+	return $self->{'db_xref'};
+}
+
 =item phase()
 
 Returns the GFF3 'phase', i.e. the number of nucleotides after which the
