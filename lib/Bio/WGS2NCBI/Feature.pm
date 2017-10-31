@@ -52,6 +52,19 @@ sub new {
     return bless $self, $class;
 }
 
+
+=item seq
+
+Getter/setter of sequence id
+
+=cut
+
+sub seq {
+	my $self = shift;
+	$self->{'seq'} = shift if @_;
+	return $self->{'seq'};
+}
+
 =item range()
 
 Returns a list of ranges, specified as start/stop coordinates, 
@@ -64,6 +77,37 @@ sub range {
     my $self = shift;
     push @{ $self->{'range'} }, shift if @_;
     return @{ $self->{'range'} };
+}
+
+=item lies_within
+
+Tests whether the invocant lies within the provided coordinates
+
+=cut
+
+sub lies_within {
+	my ( $self, $start, $stop ) = @_;
+	$start =~ s/^[c<>]//;
+	$stop  =~ s/^[c<>]//;
+	my @r = $self->range;
+	my $r1 = $r[0]->[0];
+	my $r2 = $r[-1]->[-1];
+	$r1 =~ s/^[c<>]//;
+	$r2 =~ s/^[c<>]//;
+	if ( $start <= $stop ) {
+		if ( $r1 >= $start and $r2 <= $stop ) {
+			return 1;
+		}
+		return 0;
+	}
+	
+	# opposite strand
+	if ( $start >= $stop ) {
+		if ( $r1 <= $start and $r2 >= $stop ) {
+			return 1;
+		}
+		return 0;
+	}
 }
 
 =item id()
