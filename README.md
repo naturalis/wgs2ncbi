@@ -5,10 +5,10 @@ The process of going from an annotated genome to a valid NCBI submission is some
 cumbersome. "Boutique" genome projects might produce a scaffolded assembly in FASTA format
 and predicted genes in GFF3 tabular format (e.g. produced by the "maker" pipeline) but no 
 convenient tools appear to exist to turn these results in the format that NCBI requires.
-This project remedies this by providing some Perl scripts (with no dependencies) to do the 
-re-formatting. Included is also a shell script that chains the Perl scripts together and
-runs NCBI's tbl2asn on the result. This shell script is intended as an example and should
-be edited or copied to provide the right values.
+This project remedies this by providing some Perl scripts (with no dependencies except 
+URI::Escape) to do the re-formatting. Included is also a shell script that chains the Perl 
+scripts together and runs NCBI's tbl2asn on the result. This shell script is intended as 
+an example and should be edited or copied to provide the right values.
 
 Intro: What needs to be submitted
 ---------------------------------
