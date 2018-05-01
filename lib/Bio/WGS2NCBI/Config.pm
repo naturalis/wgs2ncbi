@@ -190,7 +190,10 @@ sub new {
 			my $sub = $fields{$key};
 			my $type = $sub->();
 			if ( not exists $options{"${key}=${type}"} ) {
-				$options{"${key}=${type}"} = sub { $sub->( @_, $SINGLETON ) };
+				$options{"${key}=${type}"} = sub { 
+					$sub->( @_, $SINGLETON );
+					$SINGLETON->{'_configured'}++;
+				};
 			}
 		}	
 		
@@ -214,8 +217,8 @@ sub new {
 		}
 		
 		# check if we are configured
-		if ( not $SINGLETON->{'_configured'} or $SINGLETON->{'_configured'} < (scalar(keys(%fields))-2) ) {
-			ERROR 'No sufficient configuration info provided anywhere, quitting.';
+		if ( not $SINGLETON->{'_configured'} ) {
+			ERROR 'No configuration info provided anywhere, quitting.';
 			ERROR "Try 'wgs2ncbi help' for more info.";
 			exit(1);
 		}
