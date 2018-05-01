@@ -1,14 +1,33 @@
 <tool id="wgs2ncbi_prepare" name="GGF3 Index" version="1.0.0">
   <description>indexes genome annotation</description>
   <command>
-    bash '$__tool_directory__/wgs2ncbi_prepare.sh' '$input1' '$input2' '$out_file1'
+    bash '$__tool_directory__/wgs2ncbi_prepare.sh' '$annotation' '$config_ini' '$out_file'
   </command>
   <inputs>
-    <param name="input1" format="gff" type="data" label="GFF3 annotation" />
-    <param name="input2" format="txt" type="data" label="INI configuration file" />
+    <param name="annotation" format="gff" type="data" label="GFF3 annotation" />
   </inputs>
+  <configfiles>
+    <configfile name="config_ini">
+; The preferred source whose annotations to use.
+source=maker
+
+; Feature types to retain during pre-processing.
+feature=CDS
+feature=gene
+feature=five_prime_UTR
+feature=three_prime_UTR
+
+; Verbosity. Can be 0, (errors only), 1 (also warnings), 2 (also info messages) or 
+; 3 (also debugging messages)
+verbosity=0
+
+; Logging complexity. 0=only show log level and message; 1=also show fully qualified 
+; method name, code file and line number
+complexity=1  
+    </configfile>
+  </configfiles>
   <outputs>
-    <data name="out_file1" />
+    <data name="out_file" />
   </outputs>
   <help>
 **What it does**
