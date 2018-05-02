@@ -1,7 +1,7 @@
 <tool id="wgs2ncbi_process" name="FASTA Index" version="1.0.0">
   <description>indexes sequence data</description>
   <command>
-    bash '$__tool_directory__/wgs2ncbi_process.sh' '-conf $config_ini -prefix $prefix -authority $authority -datafile $fasta -info $info -masks $masks -products $products -verbosity 0' '$gff3' '$out_file'
+    bash '$__tool_directory__/wgs2ncbi_process.sh' '-conf $config_ini -prefix $prefix -authority gnl|$authority| -datafile $fasta -info $info -masks $masks -products $products -verbosity 0' '$gff3' '$out_file'
   </command>
   <inputs>
     <param name="fasta" format="fasta" type="data" label="FASTA sequences file" />
