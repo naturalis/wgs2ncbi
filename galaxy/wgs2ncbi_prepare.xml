@@ -27,7 +27,7 @@ complexity=1
     </configfile>
   </configfiles>
   <outputs>
-    <data name="out_file" />
+    <data name="out_file" format="zip" />
   </outputs>
   <help>
 **What it does**
