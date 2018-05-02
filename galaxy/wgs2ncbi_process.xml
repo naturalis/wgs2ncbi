@@ -22,6 +22,23 @@ feature=CDS
 feature=gene
 feature=five_prime_UTR
 feature=three_prime_UTR
+      
+; Number of sequences to lump in one file. Must be <= 10,000
+chunksize=5000
+
+; Minimum length of sequences to retain. Must be >= 200
+minlength=200
+
+; Number of sequences to write (used for testing). Set to 0 for all sequences.
+limit=0
+
+; Minimum length of introns to retain. Must be >= 10. In genes that have smaller introns 
+; all CDS features are lumped to create a non-coding pseudogene.
+minintron=10
+
+; Location of the tbl2asn executable. If this is set to tbl2asn=tbl2asn then the 
+; assumption is that it is found on the PATH.
+tbl2asn=tbl2asn
 
 ; Verbosity. Can be 0, (errors only), 1 (also warnings), 2 (also info messages) or 
 ; 3 (also debugging messages)
