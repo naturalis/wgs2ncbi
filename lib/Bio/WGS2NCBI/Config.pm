@@ -104,7 +104,7 @@ my %fields = (
 
 sub verbosity {
 	my ( $self, $v ) = @_;
-	if ( $v and $v =~ /^(?:1|2|3)$/ ) {
+	if ( $v and $v =~ /^[0-3]$/ ) {
 		$Bio::WGS2NCBI::Logger::Verbosity = $v;
 	}
 	return $Bio::WGS2NCBI::Logger::Verbosity;
