@@ -23,17 +23,18 @@ feature=gene
 feature=five_prime_UTR
 feature=three_prime_UTR
       
-; Number of sequences to lump in one file. Must be <= 10,000
+; Number of sequences to lump in one file. Must be less than or equal to 10,000
 chunksize=5000
 
-; Minimum length of sequences to retain. Must be >= 200
+; Minimum length of sequences to retain. Must be greater than or equal to 200
 minlength=200
 
 ; Number of sequences to write (used for testing). Set to 0 for all sequences.
 limit=0
 
-; Minimum length of introns to retain. Must be >= 10. In genes that have smaller introns 
-; all CDS features are lumped to create a non-coding pseudogene.
+; Minimum length of introns to retain. Must be greater than or equal to 10. 
+; In genes that have smaller introns all CDS features are lumped to create a 
+; non-coding pseudogene.
 minintron=10
 
 ; Location of the tbl2asn executable. If this is set to tbl2asn=tbl2asn then the 
