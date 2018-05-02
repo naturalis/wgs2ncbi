@@ -9,5 +9,5 @@ mkdir $outdir
 mkdir $datadir
 tar -xzf $3 -C $datadir --strip-components=1
 wgs2ncbi convert $1 -datadir $datadir -outdir $outdir
-tar -C $datadir -cvzf $2 . > /dev/null 2>&1
+tar -C $outdir -cvzf $2 . > /dev/null 2>&1
 rm -rf $tempdir > /dev/null 2>&1
