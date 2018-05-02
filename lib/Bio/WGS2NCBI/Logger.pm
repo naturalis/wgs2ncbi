@@ -4,7 +4,7 @@ require Exporter;
 use base 'Exporter';
 
 our $Complexity = 0;
-our $Verbosity  = 1;
+our $Verbosity  = 0;
 our @EXPORT      = qw(DEBUG INFO WARN ERROR);
 our %COLORS      = (
 	'DEBUG' => 'blue', 
