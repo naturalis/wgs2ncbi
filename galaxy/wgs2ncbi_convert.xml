@@ -5,7 +5,7 @@
   </command>
   <inputs>
     <param name="conf" format="txt" type="data" label="INI project file" />
-    <param name="data" format="txt" type="data" label="Data archive (from process)" />
+    <param name="data" type="data" label="Data archive (from process)" />
     <param name="template" format="txt" type="data" label="NCBI submission template" />
   </inputs>
   <outputs>
