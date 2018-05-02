@@ -10,7 +10,7 @@
     <param name="info" format="txt" type="data" label="info file" help="This file contains lines with key/value pairs that will be inserted in the FASTA headers. These are typically used for data about the assay and organism, e.g. 'organism=Mucuna pruriens'" />
     <param name="masks" format="txt" type="data" label="masks file" help="This file contains ranges to mask. Each line should contain the sequence (e.g. scaffold) identifier and then the start and end coordinates, e.g. 'contig_9825=54309..54363'"/>
     <param name="products" format="txt" type="data" label="products file" help="This file contains a mapping between 'incorrect' product names and corrected ones. Each pair of incorrect and corrected name is on a line, separated by an '=' sign" />
-    <param name="gff3" type="data" label="Indexed GFF3 file" />
+    <param name="gff3" format="zip" type="data" label="Indexed GFF3 file" />
   </inputs>
   <configfiles>
     <configfile name="config_ini">
@@ -51,7 +51,7 @@ complexity=1
     </configfile>
   </configfiles>  
   <outputs>
-    <data name="out_file" />
+    <data name="out_file" format="zip" />
   </outputs>
   <help>
 **What it does**
