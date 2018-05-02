@@ -181,7 +181,6 @@ sub new {
 		my ( $verbosity, $config_ini ) = $Bio::WGS2NCBI::Logger::Verbosity;
 		my %options = (
 			'conf=s'   => \$config_ini,
-			'verbose+' => \$verbosity,
 			'help|?'   => sub { Bio::WGS2NCBI->help }
 		);
 		
