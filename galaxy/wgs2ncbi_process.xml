@@ -1,18 +1,38 @@
 <tool id="wgs2ncbi_process" name="FASTA Index" version="1.0.0">
   <description>indexes sequence data</description>
   <command>
-    bash '$__tool_directory__/wgs2ncbi_process.sh' '$fasta' '$conf' '$info' '$masks' '$products' '$gff3' '$out_file1'
+    bash '$__tool_directory__/wgs2ncbi_process.sh' '$fasta' '$config_ini' '$info' '$masks' '$products' '$gff3' '$out_file'
   </command>
   <inputs>
     <param name="fasta" format="fasta" type="data" label="FASTA sequences file" />
-    <param name="conf" format="txt" type="data" label="INI project file" />
+    <!-- add prefix and authority -->
     <param name="info" format="txt" type="data" label="INI info file" />
     <param name="masks" format="txt" type="data" label="INI masks file" />
     <param name="products" format="txt" type="data" label="INI products file" />
     <param name="gff3" type="data" label="Indexed GFF3 file" />
   </inputs>
+  <configfiles>
+    <configfile name="config_ini">
+; The preferred source whose annotations to use.
+source=maker
+
+; Feature types to retain during pre-processing.
+feature=CDS
+feature=gene
+feature=five_prime_UTR
+feature=three_prime_UTR
+
+; Verbosity. Can be 0, (errors only), 1 (also warnings), 2 (also info messages) or 
+; 3 (also debugging messages)
+verbosity=0
+
+; Logging complexity. 0=only show log level and message; 1=also show fully qualified 
+; method name, code file and line number
+complexity=1  
+    </configfile>
+  </configfiles>  
   <outputs>
-    <data name="out_file1" />
+    <data name="out_file" />
   </outputs>
   <help>
 **What it does**
