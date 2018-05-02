@@ -9,5 +9,5 @@ mkdir $datadir
 mkdir $gff3dir
 tar -xzf $2 -C $gff3dir --strip-components=1
 wgs2ncbi process $1 -datadir $datadir -gff3dir $gff3dir
-tar -C $datadir -cvzf $3 . 2>/dev/null
-rm -rf $tempdir
+tar -C $datadir -cvzf $3 . > /dev/null 2>&1
+rm -rf $tempdir > /dev/null 2>&1
