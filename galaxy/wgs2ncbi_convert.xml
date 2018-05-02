@@ -6,7 +6,7 @@
   <inputs>
     <param name="conf" format="txt" type="data" label="INI project file" />
     <param name="data" type="data" label="Data archive (from process)" />
-    <param name="template" format="txt" type="data" label="NCBI submission template" />
+    <param name="template" format="asn1" type="data" label="NCBI submission template" />
   </inputs>
   <outputs>
     <data name="out_file1" />
