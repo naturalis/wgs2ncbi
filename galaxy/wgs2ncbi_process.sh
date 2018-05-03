@@ -9,5 +9,6 @@ mkdir $datadir
 mkdir $gff3dir
 unzip -qq -d $gff3dir $2
 wgs2ncbi process $1 -datadir $datadir -gff3dir $gff3dir
-zip -jrq $3 $datadir
+zip -jrq $3.zip $datadir
+mv $3.zip $3
 rm -rf $tempdir
