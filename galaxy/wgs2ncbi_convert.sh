@@ -9,5 +9,6 @@ mkdir $outdir
 mkdir $datadir
 unzip -qq -d $datadir $3
 wgs2ncbi convert $1 -datadir $datadir -outdir $outdir
-zip -jrq $2 $outdir
+zip -jrq $2.zip $outdir
+mv $2.zip $2
 rm -rf $tempdir
