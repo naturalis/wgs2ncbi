@@ -7,7 +7,7 @@ datadir=$tempdir/datadir
 gff3dir=$tempdir/gff3dir
 mkdir $datadir
 mkdir $gff3dir
-tar -xzf $2 -C $gff3dir --strip-components=1
+unzip -qq -d $gff3dir $2
 wgs2ncbi process $1 -datadir $datadir -gff3dir $gff3dir
-tar -C $datadir -cvzf $3 . > /dev/null 2>&1
-rm -rf $tempdir > /dev/null 2>&1
+zip -jrq $3 $datadir
+rm -rf $tempdir
