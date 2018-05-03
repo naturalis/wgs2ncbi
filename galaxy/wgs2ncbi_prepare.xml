@@ -1,5 +1,5 @@
 <tool id="wgs2ncbi_prepare" name="GGF3 Indexing" version="1.0.0">
-  <description>Pre-processes genome annotations</description>
+  <description>pre-processes genome annotations</description>
   <command>
     bash '$__tool_directory__/wgs2ncbi_prepare.sh' '$annotation' '$config_ini' '$out_file'
   </command>
