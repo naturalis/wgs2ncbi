@@ -439,28 +439,60 @@ sub trim {
 			while( not eof($fh) ) {
 				( $pos, $seq ) = Bio::WGS2NCBI::Seq->read_fasta( $fh, $pos );
 				my $id = $seq->id;
-				$coord{$id} = [
-					$seq->get_non_missing_index,
-					$seq->get_non_missing_index('reverse'),
-				];
-				$seq->trunc->write_fasta($out);	
+				my $i1 = $seq->get_non_missing_index;
+				my $i2 = $seq->get_non_missing_index(1);
+				INFO "$id\t$i1 .. $i2";
+				$coord{$id} = [ $i1, $i2  ];
+				$seq->trunc( $i1 + 1, $i2 + 1 )->write_fasta($out);	
 			}
 			
-			# make backup of TBL file
+			# make backup of TBL file, open handle for writing		
 			rename "${INDIR}/${stem}.tbl", "${INDIR}/${stem}.tbl.bak";
-			my $tr = Bio::WGS2NCBI::TableReader->new( '-file' => "${INDIR}/${stem}.tbl" );
-			my ( $drop, $id );
+			open my $outtbl, '>', "${INDIR}/${stem}.tbl" or die $!;
+			
+			# initialize variables
+			my $tr = Bio::WGS2NCBI::TableReader->new( 
+				'-file' => "${INDIR}/${stem}.tbl.bak",
+				'-cb'   => sub {
+					my $id = shift;
+					print $outtbl '>Features ', $id, "\n";
+				}
+			);
+						
+			# iterate over features
+			my ( $oldid, $drop, $id ) = ( '' );
 			while( my $f = $tr->next_feature ) {
 				$id = $tr->seq;
-				my ( $start, $stop ) = @{ $coord{$id} };
 				if ( $f->isa('Bio::WGS2NCBI::GeneFeature') ) {
-					if ( $f->lies_within( $start, $stop ) ) {
+					if ( $f->lies_within( @{ $coord{$id} } ) ) {
 						$drop = 0;
 					}
 					else {
 						$drop = 1;
 					}
+				}				
+				if ( not $drop ) {
+					
+					# shift features leftward		
+					if ( my $diff = $coord{$id}->[0] ) {
+						my @r = $f->range;
+						for my $r ( @r ) {
+							my @coord;
+							for my $coord ( @$r ) {
+								if ( $coord =~ /^([^0-9]*)(\d+)$/ ) {
+									my $prefix = $1;
+									my $number = $2;
+									$number -= $diff;
+									push @coord, $prefix . $number;
+								}
+							}
+							$r->[0] = $coord[0];
+							$r->[1] = $coord[1];
+						}
+					}
+					print $outtbl $f->to_string;
 				}
+				$oldid = $id;
 			}
 		}
 	}
