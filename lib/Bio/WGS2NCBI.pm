@@ -430,7 +430,7 @@ sub trim {
 			my $stem = $1;
 		
 			# make backup of FASTA file
-			rename "${INDIR}/${file}" "${INDIR}/${file}.bak"
+			rename "${INDIR}/${file}", "${INDIR}/${file}.bak";
 			
 			# read file, look op non-missing residue positions, write truncated
 			open my $fh,  '<', "${INDIR}/${file}.bak" or die $!;
@@ -447,13 +447,13 @@ sub trim {
 			}
 			
 			# make backup of TBL file
-			rename "${INDIR}/${stem}.tbl" "${INDIR}/${stem}.tbl.bak";
+			rename "${INDIR}/${stem}.tbl", "${INDIR}/${stem}.tbl.bak";
 			my $tr = Bio::WGS2NCBI::TableReader->new( '-file' => "${INDIR}/${stem}.tbl" );
 			my ( $drop, $id );
 			while( my $f = $tr->next_feature ) {
 				$id = $tr->seq;
 				my ( $start, $stop ) = @{ $coord{$id} };
-				if ( $f->isa('Bio::WGS2NCBI::GeneFeature') {
+				if ( $f->isa('Bio::WGS2NCBI::GeneFeature') ) {
 					if ( $f->lies_within( $start, $stop ) ) {
 						$drop = 0;
 					}
