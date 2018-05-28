@@ -213,11 +213,15 @@ sub read_features {
             # we only create one CDS and one mRNA object, which both span multiple ranges
             if ( not $cds and not $mrna ) {
                 DEBUG "Instantiating new CDS and mRNA";
+		my $auth = $config->authority;
+		if ( not $auth ) {
+			WARN "No naming authority specified!";
+		}
             
                 # create the CDS                
                 $args{'product'}       = $gene->product;
-                $args{'protein_id'}    = $config->authority . $gene->locus_tag;
-                $args{'transcript_id'} = $config->authority . $gene->locus_tag . '.mrna';
+                $args{'protein_id'}    = $auth . $gene->locus_tag;
+                $args{'transcript_id'} = $auth . $gene->locus_tag . '.mrna';
                 $cds = Bio::WGS2NCBI::Feature->new(
                     %args,
                     'phase'   => $line[$codon_idx],

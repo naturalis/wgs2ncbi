@@ -395,7 +395,7 @@ sub convert {
 	my $OUTDIR  = $config->outdir;
 	my $DISCREP = $config->discrep;
 	my $TBL2ASN = $config->tbl2asn;	
-	my $command = "$TBL2ASN -p $INDIR -t $TMPL -M n -a r10k -l paired-ends -r $OUTDIR -Z $DISCREP";
+	my $command = "$TBL2ASN -p $INDIR -t $TMPL -M n -a r10k -l paired-ends -r $OUTDIR -Z $DISCREP > /dev/null 2>&1";
 	INFO "going to execute command '$command'";
 	exec $command;
 }
