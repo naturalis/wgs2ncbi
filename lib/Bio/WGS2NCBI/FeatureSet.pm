@@ -118,6 +118,16 @@ sub to_string {
     return $result;
 }
 
+=item read_feature_set
+
+
+=cut
+
+sub read_feature_set {
+	my ( $class, $fh, $pos ) = @_;
+
+}
+
 =item read_features
 
 Reads and returns a FeatureSet. Arguments:

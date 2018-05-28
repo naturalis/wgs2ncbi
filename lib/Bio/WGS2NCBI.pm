@@ -400,6 +400,72 @@ sub convert {
 	exec $command;
 }
 
+=head1 trim
+
+The C<trim> action trims stretches of leading or trailing NNNs from sequence records, and
+updates the coordinates in the associated feature tables accordingly. In cases where a 
+feature falls within a trimmed region, the feature is removed entirely.
+
+=over
+
+=item C<datadir>
+
+The location of the dir where the (potentially 'chunked', see below) sequence files
+and feature tables were written by L<Bio::WGS2NCBI/process>.
+
+=back
+
+=cut
+
+sub trim {
+	my $config = Bio::WGS2NCBI::Config->new;
+	my $INDIR  = $config->datadir;
+	
+	# iterate over files in folder, read FASTA files
+	opendir my $dh, $INDIR or die $!;
+	while( my $file = readdir $dh ) {
+		
+		# have a FASTA file
+		if ( $file =~ /(.+)\.fsa$/ ) {
+			my $stem = $1;
+		
+			# make backup of FASTA file
+			rename "${INDIR}/${file}" "${INDIR}/${file}.bak"
+			
+			# read file, look op non-missing residue positions, write truncated
+			open my $fh,  '<', "${INDIR}/${file}.bak" or die $!;
+			open my $out, '>', "${INDIR}/${file}"     or die $!;
+			my ( $pos, $seq, %coord );
+			while( not eof($fh) ) {
+				( $pos, $seq ) = Bio::WGS2NCBI::Seq->read_fasta( $fh, $pos );
+				my $id = $seq->id;
+				$coord{$id} = [
+					$seq->get_non_missing_index,
+					$seq->get_non_missing_index('reverse'),
+				];
+				$seq->trunc->write_fasta($out);	
+			}
+			
+			# make backup of TBL file
+			rename "${INDIR}/${stem}.tbl" "${INDIR}/${stem}.tbl.bak";
+			my $tr = Bio::WGS2NCBI::TableReader->new( '-file' => "${INDIR}/${stem}.tbl" );
+			my ( $drop, $id );
+			while( my $f = $tr->next_feature ) {
+				$id = $tr->seq;
+				my ( $start, $stop ) = @{ $coord{$id} };
+				if ( $f->isa('Bio::WGS2NCBI::GeneFeature') {
+					if ( $f->lies_within( $start, $stop ) ) {
+						$drop = 0;
+					}
+					else {
+						$drop = 1;
+					}
+				}
+			}
+		}
+	}
+}
+
 =head1 prune
 
 The C<prune> action reads a discrepancy file as supplied by NCBI, parses out errors that
