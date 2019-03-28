@@ -6,7 +6,9 @@ tags:
 authors:
  - name: Rutger A. Vos
    orcid: 0000-0001-9254-7318
-   affiliation: Naturalis Biodiversity Center, P.O. Box 9517, 2300 RA, Leiden, The Netherlands
+   affiliation: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
+ - name: Nnadi Nnaemeka Emmanuel
+   affiliation: Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria.
 date: 28 March 2019
 bibliography: paper.bib
 ---
