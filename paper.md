@@ -1,5 +1,5 @@
 ---
-title: 'Toolkit for preparing genomes for submission to NCBI'
+title: 'WGS2NCBI - Toolkit for preparing genomes for submission to NCBI'
 tags:
   - bioinformatics
   - computational biology
