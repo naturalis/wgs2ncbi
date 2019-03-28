@@ -4,7 +4,7 @@ tags:
   - bioinformatics
   - computational biology
 authors:
- - name: Rutger A. Vos
+ - name: Rutger Aldo Vos
    orcid: 0000-0001-9254-7318
    affiliation: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
  - name: Nnadi Nnaemeka Emmanuel
