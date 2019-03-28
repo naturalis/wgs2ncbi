@@ -22,6 +22,6 @@ __wgs2ncbi__ is a standalone Perl package for preparing the results of whole gen
 3. Converting the processing results to ASN.1/seqin files for upload to NCBI (`convert`).
 4. Compressing the converted files to archives acceptable to NCBI's upload service (`compress`). 
 
-In step 2., the toolkit allows for easy masking of detected contaminations and adaptors, a generalized mapping between invalid product names (as detected by NCBI) and valid alternatives, and automatic conversion of putative-but-invalid genes (e.g. those with introns that are 'too short') to pseudogenes. This functionality has helped make the submission of the genome of the King Cobra [@Vonk2013], and that of the Velvet Mung Bean.
+In step 2., the toolkit allows for easy masking of detected contaminations and adaptors, a generalized mapping between invalid product names (as detected by NCBI) and valid alternatives, and automatic conversion of putative-but-invalid genes (e.g. those with introns that are 'too short') to pseudogenes. This functionality has helped make the submission of the genome of the King Cobra [@Vonk2013] and ([AZIM00000000.1](https://www.ncbi.nlm.nih.gov/nuccore/AZIM00000000.1)), and that of the Velvet Bean ([QJKJ00000000.1](https://www.ncbi.nlm.nih.gov/nuccore/QJKJ00000000.1)).
 
 # References
