@@ -3,12 +3,19 @@ title: 'WGS2NCBI - Toolkit for preparing genomes for submission to NCBI'
 tags:
   - bioinformatics
   - computational biology
+  - Perl
+  - genomes
 authors:
  - name: Rutger Aldo Vos
    orcid: 0000-0001-9254-7318
-   affiliation: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
+   affiliation: 1
  - name: Nnadi Nnaemeka Emmanuel
-   affiliation: Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria.
+   affiliation: 2
+affiliations:
+ - name: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
+   index: 1
+ - name: Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria.
+   index: 2
 date: 28 March 2019
 bibliography: paper.bib
 ---
