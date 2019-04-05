@@ -62,7 +62,7 @@ Creating the submission template
 
 GenBank provides a web form that produces the sbt file. This form needs to be filled out
 with the correct metadata, i.e. all the authors of the publication, the publication title,
-the organism, etc. The included [template.sbt](template.sbt) file contains an example. 
+the organism, etc. The included [template.sbt](share/template.sbt) file contains an example. 
 [The form to create such files is here](http://www.ncbi.nlm.nih.gov/WebSub/template.cgi)
 
 Splitting the GFF3 file
