@@ -11,11 +11,17 @@ authors:
    affiliation: 1
  - name: Nnadi Nnaemeka Emmanuel
    affiliation: 2
+ - name: John Chinenye Aguiyi
+   affiliation: "3, 4"
 affiliations:
  - name: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
    index: 1
- - name: Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria.
+ - name: Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria
    index: 2
+ - name: African Centre of Excellence on Phytomedicine Research and Development (ACEPRD), University of Jos, Jos, Plateau State, Nigeria
+   index: 3
+ - name:  Department of Pharmacology, Faculty of Pharmaceutical Sciences, University of Jos, Jos, Plateau State, Nigeria
+   index: 4
 date: 28 March 2019
 bibliography: paper.bib
 ---
