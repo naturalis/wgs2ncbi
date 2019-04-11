@@ -669,7 +669,11 @@ Displays module documentation (which you are reading now).
 =cut
 
 sub help {
-	pod2usage({-verbose => 2});
+	pod2usage({
+		'-verbose'   => 2,
+		'-exitval'   => 0,
+		'-noperldoc' => 1,
+	});
 }
 
 1;
