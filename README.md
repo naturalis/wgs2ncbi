@@ -158,3 +158,24 @@ specifies the coordinates of stretches to NNN. In addition, NCBI might have addi
 issues with certain protein names, so you may have to update the 
 [names mapping file](share/products.ini). Then rerun the convert step, rebuild the archive,
 and do another upload.
+
+About this software
+===================
+
+WGS2NCBI is implemented as a Perl5 package. It is open source software made available
+under the [BSD3 license](LICENSE). To install it, download the 
+[archive](https://github.com/naturalis/wgs2ncbi/archive/master.zip), unzip it, and move
+into the unpacked folder in a terminal window. Then issue the following commands:
+
+    $ perl Makefile.PL
+    $ make test
+    $ sudo make install
+
+If you experience any difficulties with this software, or you have suggestions, or want
+to contribute directly, you have the following options:
+
+- submit a bug report or feature request to the 
+  [issue tracker](https://github.com/naturalis/wgs2ncbi/issues)
+- contribute directly to the source code through the 
+  [github](https://github.com/naturalis/wgs2ncbi) repository. 'Pull requests' are
+  especially welcome.
