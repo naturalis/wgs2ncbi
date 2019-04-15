@@ -65,6 +65,19 @@ instructions for this are [here](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/)
 Usage
 =====
 
+WGS2NCBI is used by following a number of steps, which are detailed below:
+
+- [Before you start](#before-you-start) - set up all the input files, prepare a submission
+  template
+- [Subcommand `prepare`](#subcommand-prepare) - pre-process the annotation file for rapid
+  access in the following steps
+- [Subcommand `process`](#subcommand-process) - convert the genome file and annotations
+  to FASTA chunks and feature tables
+- [Subcommand `convert`](#subcommand-convert) - runs tbl2asn to convert the FASTA chunks
+  and feature tables to SeqIn files
+- [Subcommand `compress`](#subcommand-compress) - collates the SeqIn files into a single
+  archive for upload to NCBI      
+
 Before you start
 ----------------
 
