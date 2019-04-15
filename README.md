@@ -4,21 +4,23 @@ WGS2NCBI - preparing genomes for submission to NCBI
 The process of going from an annotated genome to a valid NCBI submission is somewhat 
 cumbersome. "Boutique" genome projects typically produce a scaffolded assembly in FASTA 
 format as produced by any of a variety of de-novo assemblers and predicted genes in GFF3 
-tabular format, e.g. as produced by the "maker" pipeline, but no convenient tools appear 
-to exist to turn these results in the format that NCBI accepts.
+tabular format, e.g. as produced by the 
+[maker](http://www.yandell-lab.org/software/maker.html) pipeline, but no convenient tools 
+appear to exist to turn these results in a format and to a standard that NCBI accepts.
 
-NCBI requires that "whole genome shotgunning" (WGS) genomes are submitted as .sqn files. 
+NCBI requires that "whole genome shotgunning" (WGS) genomes are submitted as `.sqn` files. 
 A sqn file is a file in ASN.1 syntax that contains both the sequence, its features, and 
 the metadata about the submission, i.e. the authors, the publication title, the organism, 
-etc.. sqn files are normally produced by the SeqIn program, which has a graphical user 
-interface. SeqIn works fine for a single gene or for a small genome (e.g. a mitochondrial 
+etc.. `.sqn` files are normally produced by the 
+[sequin](https://www.ncbi.nlm.nih.gov/Sequin/) program, which has a graphical user 
+interface. Sequin works fine for a single gene or for a small genome (e.g. a mitochondrial 
 genome) but for large genomes with thousands of genes spread out over potentially 
-thousands of scaffolds the submission process done in this way is unworkable.
+thousands of scaffolds the submission process done in this way would be unworkable.
 
-The alternative is to use [tbl2asn](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
-command line program, which takes a directory with FASTA files (.fsa) and corresponding 
-files with the gene features in tabular format (.tbl), and a submission template 
-(template.sbt) to produce the sqn files. The trick thus becomes to convert the assembly
+The alternative is to use the [tbl2asn](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
+command line program, which takes a directory with FASTA files (`.fsa`) and corresponding 
+files with the gene features in tabular format (`.tbl`), and a submission template 
+(template.sbt) to produce the `.sqn` files. The trick thus becomes to convert the assembly
 FASTA file and the annotation GFF3 file into a collection of FASTA chunks with
 corresponding feature tables. This is doable in principle - several toolkits provide
 generic convertors -, but NCBI places quite a few restrictions on what are permissible 
@@ -88,7 +90,7 @@ Before issuing any commands, the following steps need to be taken:
 3. You will need to prepare a 
    [submission template](http://www.ncbi.nlm.nih.gov/WebSub/template.cgi). The file
    [template.sbt](share/template.sbt) is an example of what these files look like.
-4. You need to have created a number of INI files correctly. Using the linked files as 
+4. You need to have created a number of `.ini` files correctly. Using the linked files as 
    examples, the following need to be prepared:
    - [wgs2ncbi.ini](share/wgs2ncbi.ini) - the main configuration file, in which you 
      specify the locations of the input files and output directories. In addition, here
@@ -128,7 +130,7 @@ also need to provide the location of this same file.
 
 What happens during this step is that the GFF3 file is pre-processed so that the following
 steps will have quicker access to the relevant contents than they would have if they had
-the scan through the entire file every time. To be precise, the following happens:
+to scan through the entire file every time. To be precise, the following happens:
 
 - only 'true' annotation data is retained. GFF3 files may also contain their own bits of
   fasta data, but these are filtered out.
@@ -148,7 +150,7 @@ need to run this step once.
 Subcommand `process`
 --------------------
 
-This subcommand is issues as follows:
+This subcommand is issued as follows:
 
     $ wgs2ncbi process -conf <wgs2ncbi.ini>
 
@@ -167,20 +169,20 @@ the following happens:
   `chunksize`, rounded up to the nearest integer. However, contigs smaller than
   `minlength`, if you have them, will be omitted, as NCBI won't accept these.
 - the FASTA data that will be written will have any stretches specified in
-  [adaptors.ini](share/adaptors.ini) replaced with NNNs. These will be sequence fragments
-  that NCBI will specify as inadmissible because they might be sequence adaptors (i.e.
-  vendor-specific synthetic DNA) or contaminants.
-- the FASTA files will have the .fsa file extension, as required by `tbl2asn`.  
+  [adaptors.ini](share/adaptors.ini) replaced with `NNNs`. These will be sequence 
+  fragments that NCBI will specify as inadmissible because they might be sequence adaptors 
+  (i.e. vendor-specific synthetic DNA) or contaminants.
+- the FASTA files will have the `.fsa` file extension, as required by `tbl2asn`.  
 - the annotations from the GFF3 file, pre-processed in the previous step, will be written
-  out as feature tables (required extension: .tbl). There will be as many .tbl files as
-  there are .fsa files.
+  out as feature tables (required extension: `.tbl`). There will be as many `.tbl` files 
+  as there are `.fsa` files.
 - any gene annotations that have introns that are shorter than
   [minintron](https://github.com/naturalis/wgs2ncbi/blob/master/share/wgs2ncbi.ini#L67)
   will be converted to pseudogenes, as NCBI does not believe these could be real.
 - any gene product names that are unacceptable to NCBI, and for which you have provided 
-  a mapping in [products.ini](share/products.ini) will be mapped to the correct names
+  a mapping in [products.ini](share/products.ini), will be mapped to the names
   you have provided.  
-- both the .fsa and the .tbl files will be written in the same directory, specified by
+- both the `.fsa` and the `.tbl` files will be written in the same directory, specified by
   [datadir](https://github.com/naturalis/wgs2ncbi/blob/master/share/wgs2ncbi.ini#L26)
 
 Since the results of this step depend on the settings in the 
@@ -209,7 +211,7 @@ Once you are all set, issue the subcommand as follows:
 i.e. by providing the location of the [wgs2ncbi.ini](share/wgs2ncbi.ini) configuration 
 file to the `-conf` argument. The following will then happen:
 
-- the SeqIn files, with the .sqn extension, will be written to the directory
+- the Sequin files, with the `.sqn` extension, will be written to the directory
   [outdir](https://github.com/naturalis/wgs2ncbi/blob/master/share/wgs2ncbi.ini#L36)
 - the discrepancy report, containing all the problems that `tbl2asn` diagnosed, will be
   written to 
@@ -236,8 +238,8 @@ Source: https://www.ncbi.nlm.nih.gov/genbank/asndisc/
 Subcommand `compress`
 ---------------------
 
-The final step simply takes the .sqn files from the previous step and combines them in
-a single .tar.gz archive for upload to the NCBI submission portal. No data processing of
+The final step simply takes the `.sqn` files from the previous step and combines them in
+a single `.tar.gz` archive for upload to the NCBI submission portal. No data processing of
 any kind takes place, this is purely for convenience and is executed as follows:
 
     $ wgs2ncbi compress -conf <config.ini>
@@ -258,13 +260,7 @@ About this software
 ===================
 
 WGS2NCBI is implemented as a Perl5 package. It is open source software made available
-under the [BSD3 license](LICENSE). To install it, download the 
-[archive](https://github.com/naturalis/wgs2ncbi/archive/master.zip), unzip it, and move
-into the unpacked folder in a terminal window. Then issue the following commands:
-
-    $ perl Makefile.PL
-    $ make test
-    $ sudo make install
+under the [BSD3 license](LICENSE).
 
 If you experience any difficulties with this software, or you have suggestions, or want
 to contribute directly, you have the following options:
