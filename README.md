@@ -3,26 +3,25 @@ WGS2NCBI - toolkit for preparing genomes for submission to NCBI
 
 The process of going from an annotated genome to a valid NCBI submission is somewhat 
 cumbersome. "Boutique" genome projects typically produce a scaffolded assembly in FASTA 
-format (produced by any of a variety of de-novo assemblers) and predicted genes in GFF3 
-tabular format (e.g. produced by the "maker" pipeline) but no convenient tools appear to 
-exist to turn these results in the format that NCBI accepts.
+format as produced by any of a variety of de-novo assemblers and predicted genes in GFF3 
+tabular format, e.g. as produced by the "maker" pipeline, but no convenient tools appear 
+to exist to turn these results in the format that NCBI accepts.
 
-NCBI requires that "whole genome shotgunning" (WGS) genomes are submitted as .sqn files
-(under the new rules of Spring 2013, one file for each scaffold). A sqn file is a file 
-in ASN.1 syntax that contains both the sequence, its features, and the metadata about the 
-submission (i.e. the authors, the publication title, the organism, etc.). sqn files are 
-normally produced by the SeqIn program, which has a graphical user interface. SeqIn works
-fine for a single gene or for a small genome (e.g. a mitochondrial genome) but for large
-genomes with thousands of genes spread out over potentially thousands of scaffolds the
-submission process done in this way is unworkable.
+NCBI requires that "whole genome shotgunning" (WGS) genomes are submitted as .sqn files. 
+A sqn file is a file in ASN.1 syntax that contains both the sequence, its features, and 
+the metadata about the submission, i.e. the authors, the publication title, the organism, 
+etc.. sqn files are normally produced by the SeqIn program, which has a graphical user 
+interface. SeqIn works fine for a single gene or for a small genome (e.g. a mitochondrial 
+genome) but for large genomes with thousands of genes spread out over potentially 
+thousands of scaffolds the submission process done in this way is unworkable.
 
 The alternative is to use [tbl2asn](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
 command line program, which takes a directory with FASTA files (.fsa) and corresponding 
 files with the gene features in tabular format (.tbl), and a submission template 
 (template.sbt) to produce the sqn files. The trick thus becomes to convert the assembly
 FASTA file and the annotation GFF3 file into a collection of FASTA chunks with
-corresponding feature tables. This is doable in principle (several toolkits provide
-generic convertors), but NCBI places quite a few restrictions on what are permissible 
+corresponding feature tables. This is doable in principle - several toolkits provide
+generic convertors -, but NCBI places quite a few restrictions on what are permissible 
 things to have in the FASTA headers, what coordinate ranges are credible as gene features,
 and what gene and gene product names are acceptable.
 
@@ -36,15 +35,15 @@ Installation
 ============
 
 The WGS2NCBI release is organized in a way that is standard for software releases written
-in the Perl5 programming language. This means that it should be installed using a series
-of commands that either you yourself, or your systems administrator, is likely already
+in the Perl5 programming language. This means that it can be installed using a series
+of commands that either you yourself, or your systems administrator, are likely already
 familiar with. The first step is to install a required dependency using the Perl5 package
 manager ([cpan](https://perldoc.perl.org/cpan.html)), as follows:
 
     $ sudo cpan -i URI::Escape
     
-The next steps assume that you have downloaded the WGS2NCBI release (for example from the
-[git repository](https://github.com/naturalis/wgs2ncbi/archive/master.zip)), have unzipped
+The next steps assume that you have downloaded the WGS2NCBI release - for example from the
+[git repository](https://github.com/naturalis/wgs2ncbi/archive/master.zip) - have unzipped
 it, and have moved into the root folder of the release in your terminal. The next steps
 then are as follows:
 
@@ -87,7 +86,7 @@ Before issuing any commands, the following steps need to be taken:
 2. You need to have the genome assembly available as a FASTA file, and the annotations
    as a GFF3 file.
 3. You will need to prepare a 
-   [submission template]((http://www.ncbi.nlm.nih.gov/WebSub/template.cgi). The file
+   [submission template](http://www.ncbi.nlm.nih.gov/WebSub/template.cgi). The file
    [template.sbt](share/template.sbt) is an example of what these files look like.
 4. You need to have created a number of INI files correctly. Using the linked files as 
    examples, the following need to be prepared:
