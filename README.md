@@ -1,5 +1,5 @@
-WGS2NCBI - toolkit for preparing genomes for submission to NCBI
-===============================================================
+WGS2NCBI - preparing genomes for submission to NCBI
+===================================================
 
 The process of going from an annotated genome to a valid NCBI submission is somewhat 
 cumbersome. "Boutique" genome projects typically produce a scaffolded assembly in FASTA 
