@@ -1,3 +1,5 @@
+[![status](http://joss.theoj.org/papers/72b726934646d999001e9997ad2fdb54/status.svg)](http://joss.theoj.org/papers/72b726934646d999001e9997ad2fdb54)
+
 WGS2NCBI - preparing genomes for submission to NCBI
 ===================================================
 
