@@ -11,7 +11,7 @@ authors:
    affiliation: 1
  - name: Nnadi Nnaemeka Emmanuel
    affiliation: 2
- - name: John Chinenye Aguiyi
+ - name: John Chinyere Aguiyi
    affiliation: "3, 4"
 affiliations:
  - name: Research Group 'Understanding Evolution', Naturalis Biodiversity Center, Leiden, The Netherlands
