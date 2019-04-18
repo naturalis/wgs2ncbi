@@ -7,15 +7,17 @@
     "publication_date": "2019-04-18", 
     "creators": [
         {
-            "affiliation": "Naturalis Biodiversity Center", 
-            "name": "Rutger Vos"
+            "affiliation": "Naturalis Biodiversity Center, Leiden, the Netherlands", 
+            "name": "Rutger Vos",
+            "orcid": "0000-0001-9254-7318"
         }, 
         {
-            "name": "Andreas Sj\u00f6din"
+            "affiliation": "Department of Microbiology, Faculty of Natural and Applied Science, Plateau State University, Bokkos, Plateau State, Nigeria",
+            "name": "Nnadi Nnaemeka Emmanuel"
         }, 
         {
-            "affiliation": "Uni of Cambridge / @PomBase", 
-            "name": "Kim Rutherford"
+            "affiliation": "African Centre of Excellence on Phytomedicine Research and Development (ACEPRD), University of Jos, Jos, Plateau State, Nigeria", 
+            "name": "John Chinyere Aguiyi"
         }
     ], 
     "access_right": "open", 
