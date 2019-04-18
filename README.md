@@ -6,24 +6,24 @@ WGS2NCBI - preparing genomes for submission to NCBI
 
 The process of going from an annotated genome to a valid NCBI submission is somewhat 
 cumbersome. "Boutique" genome projects typically produce a scaffolded assembly in FASTA 
-format as produced by any of a variety of de-novo assemblers and predicted genes in GFF3 
+format, as produced by any of a variety of de-novo assemblers, and predicted genes in GFF3 
 tabular format, e.g. as produced by the 
-[maker](http://www.yandell-lab.org/software/maker.html) pipeline, but no convenient tools 
+[maker](http://www.yandell-lab.org/software/maker.html) pipeline. No convenient tools 
 appear to exist to turn these results in a format and to a standard that NCBI accepts.
 
 NCBI requires that "whole genome shotgunning" (WGS) genomes are submitted as `.sqn` files. 
-A sqn file is a file in ASN.1 syntax that contains both the sequence, its features, and 
+A sqn file is a file in ASN.1 syntax that contains the sequences, their features, and 
 the metadata about the submission, i.e. the authors, the publication title, the organism, 
 etc.. `.sqn` files are normally produced by the 
 [sequin](https://www.ncbi.nlm.nih.gov/Sequin/) program, which has a graphical user 
 interface. Sequin works fine for a single gene or for a small genome (e.g. a mitochondrial 
 genome) but for large genomes with thousands of genes spread out over potentially 
-thousands of scaffolds the submission process done in this way would be unworkable.
+thousands of scaffolds the submission process done in this way is unworkable.
 
 The alternative is to use the [tbl2asn](https://www.ncbi.nlm.nih.gov/genbank/tbl2asn2/) 
-command line program, which takes a directory with FASTA files (`.fsa`) and corresponding 
+command line program, which takes a directory with FASTA files (`.fsa`), corresponding 
 files with the gene features in tabular format (`.tbl`), and a submission template 
-(template.sbt) to produce the `.sqn` files. The trick thus becomes to convert the assembly
+(template.sbt), to produce `.sqn` files. The trick thus becomes to convert the assembly
 FASTA file and the annotation GFF3 file into a collection of FASTA chunks with
 corresponding feature tables. This is doable in principle - several toolkits provide
 generic convertors -, but NCBI places quite a few restrictions on what are permissible 
