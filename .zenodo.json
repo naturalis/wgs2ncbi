@@ -2,9 +2,7 @@
     "description": "Toolkit for preparing genomes for submission to NCBI", 
     "license": "other-open", 
     "title": "naturalis/wgs2ncbi: WGS2NCBI - Toolkit for preparing genomes for submission to NCBI", 
-    "version": "v1.0.3", 
     "upload_type": "software", 
-    "publication_date": "2019-04-18", 
     "creators": [
         {
             "affiliation": "Naturalis Biodiversity Center, Leiden, the Netherlands", 
@@ -20,12 +18,5 @@
             "name": "John Chinyere Aguiyi"
         }
     ], 
-    "access_right": "open", 
-    "related_identifiers": [
-        {
-            "scheme": "url", 
-            "identifier": "https://github.com/naturalis/wgs2ncbi/tree/v1.0.3", 
-            "relation": "isSupplementTo"
-        }
-    ]
+    "access_right": "open"
 }
