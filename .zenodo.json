@@ -1,0 +1,29 @@
+{
+    "description": "Toolkit for preparing genomes for submission to NCBI", 
+    "license": "other-open", 
+    "title": "naturalis/wgs2ncbi: WGS2NCBI - Toolkit for preparing genomes for submission to NCBI", 
+    "version": "v1.0.3", 
+    "upload_type": "software", 
+    "publication_date": "2019-04-18", 
+    "creators": [
+        {
+            "affiliation": "Naturalis Biodiversity Center", 
+            "name": "Rutger Vos"
+        }, 
+        {
+            "name": "Andreas Sj\u00f6din"
+        }, 
+        {
+            "affiliation": "Uni of Cambridge / @PomBase", 
+            "name": "Kim Rutherford"
+        }
+    ], 
+    "access_right": "open", 
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/naturalis/wgs2ncbi/tree/v1.0.3", 
+            "relation": "isSupplementTo"
+        }
+    ]
+}
