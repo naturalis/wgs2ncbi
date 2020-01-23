@@ -13,7 +13,7 @@ use Bio::WGS2NCBI::TableReader;
 use File::Path 'make_path';
 
 # version number for the whole release is defined here
-our $VERSION = 'v0.1.1';
+our $VERSION = 'v0.1.2';
 
 # export the run function
 require Exporter;
