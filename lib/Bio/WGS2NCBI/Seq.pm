@@ -134,6 +134,17 @@ sub write_fasta {
         print $fh ' ', $seq->desc, "\n";
     }
     
+    # XXX in previous runs there always was additional info (read from an INI file)
+    # that would be added to the FASTA definitions line. These would have been
+    # key/value pairs about the sample, e.g. its sex or developmental stage. After
+    # that additional info we would have then added a line break (at line 134). We
+    # have now encountered a case where there is no additional info, which meant 
+    # that the line break would not be added, resulting in garbled FASTA. The
+    # conditional statement below this addresses that specific case.
+    else {
+    	print $fh "\n";
+    }
+    
     # fold lines at 80 characters
     my $retval;
     for my $line ( unpack "(a80)*", $seq->seq ) {
