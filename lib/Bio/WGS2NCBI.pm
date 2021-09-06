@@ -155,7 +155,7 @@ sub prepare {
 				close $handles{$fifo};
 				delete $handles{$fifo};
 			}
-			open $handles{$chr}, '>', "${gff3dir}/${chr}.gff3" or die $!;
+			open $handles{$chr}, '>>', "${gff3dir}/${chr}.gff3" or die $!;
 			push @queue, $chr;
 		}
 		my $fh = $handles{$chr};
